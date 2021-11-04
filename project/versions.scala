@@ -7,8 +7,8 @@ object Versions {
   val scalaVersion            = "2.13.7"
   val silencerVersion         = "1.4.4"
   val log4j2Version           = "2.13.1"
-  val pureconfigVersion       = "0.12.1"
-  val doobieVersion           = "0.8.8"
+  val pureconfigVersion       = "0.17.0"
+  val doobieVersion           = "1.0.0-RC1"
   val newtypeVersion          = "0.4.4"
   val refinedVersion          = "0.9.27"
   val squantsVersion          = "1.8.3"
@@ -29,7 +29,11 @@ object Versions {
   val weaverVersion           = "0.7.7"
   val betterMonadicForVersion = "0.3.1"
   val semanticDBVersion       = "4.4.30"
-  val zioVersion              = "2.0.0-M1"
+  val zioVersion              = "1.0.12"
   val zioPreludeVersion       = "1.0.0-RC7"
   val zioConfigVersion        = "1.0.10"
+  val zioInteropCatsVersion   = "3.1.1.0"
+  val enumeratumDoobieVersion = "1.7.0"
+  val flywayDbVersion         = "8.0.3"
+
 }

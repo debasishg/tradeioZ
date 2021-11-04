@@ -2,7 +2,6 @@ package tradex.domain
 package model
 
 import java.time.LocalDateTime
-import zio._
 import zio.prelude._
 
 import squants.market._
@@ -220,10 +219,13 @@ object account {
         a: Account,
         closeDate: LocalDateTime
     ): Validation[String, Account] = {
-      Validation.validateWith(
-        validateAccountAlreadyClosed(a),
-        validateCloseDate(a, closeDate)
-      )((acc, _) => acc.copy(dateOfClose = Some(closeDate)))
+      // using the monadic Validation
+      // no need to validate the close date if the account is already closed
+      val r = for {
+        _ <- validateAccountAlreadyClosed(a)
+        _ <- validateCloseDate(a, closeDate)
+      } yield ()
+      r.map(_ => a.copy(dateOfClose = Some(closeDate)))
     }
   }
 }

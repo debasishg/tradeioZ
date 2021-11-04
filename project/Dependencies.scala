@@ -7,6 +7,9 @@ object Dependencies {
   val zioPrelude = "dev.zio" %% "zio-prelude" % zioPreludeVersion
   val zioConfig = "dev.zio" %% "zio-config" % zioConfigVersion
   val zioConfigRefined = "dev.zio" %% "zio-config-refined" % zioConfigVersion
+  val zioConfigTypesafe = "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
+  val zioInteropCats = "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion
+  val flywayDb = "org.flywaydb" % "flyway-core" % flywayDbVersion
 
   // Scalafix rules
   val organizeImports = "com.github.liancheng" %% "organize-imports" % organizeImportsVersion
@@ -16,11 +19,13 @@ object Dependencies {
   def http4s(artifact: String): ModuleID    = "org.http4s"        %% s"http4s-$artifact"    % http4sVersion
   def cormorant(artifact: String): ModuleID = "io.chrisdavenport" %% s"cormorant-$artifact" % cormorantVersion
 
+
   object Misc {
-    val newtype = "io.estatico"   %% "newtype"  % newtypeVersion
-    val squants = "org.typelevel" %% "squants"  % squantsVersion
-    val fs2Core = "co.fs2"        %% "fs2-core" % fs2Version
-    val fs2IO   = "co.fs2"        %% "fs2-io"   % fs2Version
+    val newtype      = "io.estatico"             %% "newtype"        % newtypeVersion
+    val squants      = "org.typelevel"           %% "squants"        % squantsVersion
+    val fs2Core      = "co.fs2"                  %% "fs2-core"       % fs2Version
+    val fs2IO        = "co.fs2"                  %% "fs2-io"         % fs2Version
+    val pureconfig   = "com.github.pureconfig"   %% "pureconfig"     % pureconfigVersion
   }
 
   object Refined {
@@ -51,6 +56,15 @@ object Dependencies {
     val cirisSquants = "is.cir" %% "ciris-squants"    % cirisVersion
   }
 
+  object Doobie {
+    val doobieCore        = "org.tpolecat"            %% "doobie-core"        % doobieVersion
+    val doobieH2          = "org.tpolecat"            %% "doobie-h2"          % doobieVersion
+    val doobieHikari      = "org.tpolecat"            %% "doobie-hikari"      % doobieVersion
+    val doobiePostgres    = "org.tpolecat"            %% "doobie-postgres"    % doobieVersion
+    val doobieEnumeratum  = "com.beachape"            %% "enumeratum-doobie"  % enumeratumDoobieVersion
+  }
+
+
   // Runtime
   val logback = "ch.qos.logback" % "logback-classic" % logbackVersion % Runtime
 
@@ -68,14 +82,14 @@ object Dependencies {
 
   import CompilerPlugin._
 
-  val commonDependencies: Seq[ModuleID] = Seq(zio, zioPrelude, zioConfigRefined, zioConfig)
+  val commonDependencies: Seq[ModuleID] = Seq(zio, zioPrelude, zioInteropCats)
 
   val tradeioDependencies: Seq[ModuleID] =
     commonDependencies ++ Seq(kindProjector, betterMonadicFor, semanticDB) ++
-      Seq(Misc.newtype, Misc.squants) ++
+      Seq(Misc.newtype, Misc.squants, Misc.pureconfig) ++ Seq(logback) ++
       Seq(Derevo.derevoCore, Derevo.derevoCiris, Derevo.derevoCirceMagnolia) ++
       Seq(Refined.refinedCore, Refined.refinedCats, Refined.refinedShapeless) ++
       Seq(Ciris.cirisCore, Ciris.cirisEnum, Ciris.cirisRefined, Ciris.cirisCirce, Ciris.cirisSquants) ++
-      Seq(logback) ++
-      Seq(Circe.circeCore, Circe.circeGeneric, Circe.circeParser, Circe.circeRefined)
+      Seq(Circe.circeCore, Circe.circeGeneric, Circe.circeParser, Circe.circeRefined) ++
+      Seq(Doobie.doobieCore, Doobie.doobieHikari, Doobie.doobiePostgres, Doobie.doobieH2, Doobie.doobieEnumeratum)
 }
