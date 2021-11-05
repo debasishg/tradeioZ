@@ -105,21 +105,27 @@ object DoobieAccountRepository {
 
   object SQL {
     def upsert(account: Account): Update0 = {
-      // upsert in h2
-      // @todo - need to change to postgres
       sql"""
-        merge into accounts key (no)
-        values (
+        INSERT INTO accounts
+        VALUES (
           ${account.no.value.value}, 
           ${account.name.value.value}, 
           ${account.dateOfOpen}, 
           ${account.dateOfClose}, 
-          ${account.accountType.entryName},
-          ${account.baseCurrency.name},
-          ${account.tradingCurrency.map(_.name)},
+          ${account.accountType.entryName}, 
+          ${account.baseCurrency.name}, 
+          ${account.tradingCurrency.map(_.name)}, 
           ${account.settlementCurrency.map(_.name)}
         )
-      """.update
+        ON CONFLICT(no) DO UPDATE SET
+          name                 = EXCLUDED.name,
+          type                 = EXCLUDED.type,
+          dateOfOpen           = EXCLUDED.dateOfOpen,
+          dateOfClose          = EXCLUDED.dateOfClose,
+          baseCurrency         = EXCLUDED.baseCurrency,
+          tradingCurrency      = EXCLUDED.tradingCurrency,
+          settlementCurrency   = EXCLUDED.settlementCurrency
+       """.update
     }
 
     implicit val accountRead: Read[Account] =
