@@ -135,28 +135,29 @@ object DoobieAccountRepository {
        """.update
     }
 
-    type AccountInfo =
-      (
-          String,
-          String,
-          LocalDateTime,
-          Option[LocalDateTime],
-          String,
-          String,
-          Option[String],
-          Option[String]
-      )
-
-    private def toAccountInfo(account: Account): AccountInfo =
-      (
-        account.no.value.value,
-        account.name.value.value,
-        account.dateOfOpen,
-        account.dateOfClose,
-        account.accountType.entryName,
-        account.baseCurrency.name,
-        account.tradingCurrency.map(_.name),
-        account.settlementCurrency.map(_.name)
+    implicit val accountWrite: Write[Account] =
+      Write[
+        (
+            String,
+            String,
+            LocalDateTime,
+            Option[LocalDateTime],
+            String,
+            String,
+            Option[String],
+            Option[String]
+        )
+      ].contramap(account =>
+        (
+          account.no.value.value,
+          account.name.value.value,
+          account.dateOfOpen,
+          account.dateOfClose,
+          account.accountType.entryName,
+          account.baseCurrency.name,
+          account.tradingCurrency.map(_.name),
+          account.settlementCurrency.map(_.name)
+        )
       )
 
     def insertMany(accounts: List[Account]): ConnectionIO[Int] = {
@@ -174,7 +175,7 @@ object DoobieAccountRepository {
           )
         VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)
        """
-      Update[AccountInfo](sql).updateMany(accounts.map(toAccountInfo))
+      Update[Account](sql).updateMany(accounts)
     }
 
     implicit val accountRead: Read[Account] =
