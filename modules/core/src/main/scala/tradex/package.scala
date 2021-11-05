@@ -3,6 +3,7 @@ package tradex
 import java.time.LocalDateTime
 
 import squants.market._
+import zio.prelude._
 
 import eu.timepit.refined._
 import eu.timepit.refined.api._
@@ -23,8 +24,9 @@ package object domain {
       def apply[T, P](raw: T)(implicit
           c: Coercible[Refined[T, P], A],
           v: Validate[T, P]
-      ): Option[A] =
-        refineV[P](raw).toOption.map(_.coerce[A])
+      ): Validation[String, A] =
+        refineV[P](raw)
+          .fold(s => Validation.fail(s), v => Validation.succeed(v.coerce[A]))
     }
 
     def validate[A]: NewtypeRefinedPartiallyApplied[A] =

@@ -179,14 +179,12 @@ object account {
     }
 
     private[model] def validateAccountNo(no: String): Validation[String, AccountNo] =
-      validate[AccountNo](no)
-        .map(Validation.succeed(_))
-        .getOrElse(Validation.fail(s"Account No has to be at least 5 characters long: found $no"))
+      validate[AccountNo](no).mapError(s =>
+        s"Account No has to be at least 5 characters long: found $no(root cause $s)"
+      )
 
     private[model] def validateAccountName(name: String): Validation[String, AccountName] =
-      validate[AccountName](name)
-        .map(Validation.succeed(_))
-        .getOrElse(Validation.fail(s"Account Name cannot be blank"))
+      validate[AccountName](name).mapError(s => s"Account Name cannot be blank (root cause: $s")
 
     private def validateOpenCloseDate(
         od: LocalDateTime,
