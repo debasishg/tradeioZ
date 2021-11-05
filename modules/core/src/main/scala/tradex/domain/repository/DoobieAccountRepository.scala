@@ -42,6 +42,13 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
         .map(_ => a)
         .orDie
 
+    def store(as: List[Account]): Task[Unit] =
+      SQL
+        .insertMany(as)
+        .transact(xa)
+        .map(_ => ())
+        .orDie
+
     def query(openedOnDate: LocalDate): Task[List[Account]] =
       SQL
         .getByDateOfOpen(openedOnDate)
@@ -126,6 +133,48 @@ object DoobieAccountRepository {
           tradingCurrency      = EXCLUDED.tradingCurrency,
           settlementCurrency   = EXCLUDED.settlementCurrency
        """.update
+    }
+
+    type AccountInfo =
+      (
+          String,
+          String,
+          LocalDateTime,
+          Option[LocalDateTime],
+          String,
+          String,
+          Option[String],
+          Option[String]
+      )
+
+    private def toAccountInfo(account: Account): AccountInfo =
+      (
+        account.no.value.value,
+        account.name.value.value,
+        account.dateOfOpen,
+        account.dateOfClose,
+        account.accountType.entryName,
+        account.baseCurrency.name,
+        account.tradingCurrency.map(_.name),
+        account.settlementCurrency.map(_.name)
+      )
+
+    def insertMany(accounts: List[Account]): ConnectionIO[Int] = {
+      val sql = """
+        INSERT INTO accounts
+          (
+            no,
+            name, 
+            dateOfOpen, 
+            dateOfClose,
+            type,
+            baseCurrency,
+            tradingCurrency,
+            settlementCurrency
+          )
+        VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)
+       """
+      Update[AccountInfo](sql).updateMany(accounts.map(toAccountInfo))
     }
 
     implicit val accountRead: Read[Account] =

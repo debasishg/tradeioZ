@@ -17,6 +17,9 @@ package object repository {
   def store(a: Account): RIO[AccountRepository, Account] =
     ZIO.accessM(_.get.store(a))
 
+  def store(as: List[Account]): RIO[AccountRepository, Unit] =
+    ZIO.accessM(_.get.store(as))
+
   def query(openedOn: LocalDate): RIO[AccountRepository, List[Account]] =
     ZIO.accessM(_.get.query(openedOn))
 

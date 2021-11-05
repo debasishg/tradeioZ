@@ -14,6 +14,9 @@ object AccountRepository {
     /** store */
     def store(a: Account): Task[Account]
 
+    /** store many */
+    def store(as: List[Account]): Task[Unit]
+
     /** query by opened date */
     def query(openedOnDate: LocalDate): Task[List[Account]]
 
