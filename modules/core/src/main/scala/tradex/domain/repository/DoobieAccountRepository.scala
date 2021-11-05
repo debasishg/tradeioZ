@@ -21,15 +21,15 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
 
   val accountRepository: AccountRepository.Service = new AccountRepository.Service {
 
-    def all: Task[Seq[Account]] =
+    def all: Task[List[Account]] =
       SQL.getAll
         .to[List]
         .transact(xa)
         .orDie
 
-    def query(no: String): Task[Option[Account]] =
+    def query(no: AccountNo): Task[Option[Account]] =
       SQL
-        .get(no)
+        .get(no.value.value)
         .option
         .transact(xa)
         .orDie
@@ -42,13 +42,33 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
         .map(_ => a)
         .orDie
 
-    def query(openedOnDate: LocalDate): Task[Seq[Account]] =
+    def store(as: List[Account]): Task[Unit] =
+      SQL
+        .insertMany(as)
+        .transact(xa)
+        .map(_ => ())
+        .orDie
+
+    def query(openedOnDate: LocalDate): Task[List[Account]] =
       SQL
         .getByDateOfOpen(openedOnDate)
         .to[List]
         .transact(xa)
         .orDie
 
+    def allClosed(closeDate: Option[LocalDate]): Task[List[Account]] =
+      closeDate
+        .map { cd =>
+          SQL.getAllClosedAfter(cd).to[List].transact(xa).orDie
+        }
+        .getOrElse(SQL.getAllClosed.to[List].transact(xa).orDie)
+
+    def allAccountsOfType(accountType: AccountType): Task[List[Account]] =
+      SQL
+        .getByType(accountType.entryName)
+        .to[List]
+        .transact(xa)
+        .orDie
   }
 }
 
@@ -92,21 +112,69 @@ object DoobieAccountRepository {
 
   object SQL {
     def upsert(account: Account): Update0 = {
-      // upsert in h2
-      // @todo - need to change to postgres
       sql"""
-        merge into accounts key (no)
-        values (
+        INSERT INTO accounts
+        VALUES (
           ${account.no.value.value}, 
           ${account.name.value.value}, 
           ${account.dateOfOpen}, 
           ${account.dateOfClose}, 
-          ${account.accountType.entryName},
-          ${account.baseCurrency.name},
-          ${account.tradingCurrency.map(_.name)},
+          ${account.accountType.entryName}, 
+          ${account.baseCurrency.name}, 
+          ${account.tradingCurrency.map(_.name)}, 
           ${account.settlementCurrency.map(_.name)}
         )
-      """.update
+        ON CONFLICT(no) DO UPDATE SET
+          name                 = EXCLUDED.name,
+          type                 = EXCLUDED.type,
+          dateOfOpen           = EXCLUDED.dateOfOpen,
+          dateOfClose          = EXCLUDED.dateOfClose,
+          baseCurrency         = EXCLUDED.baseCurrency,
+          tradingCurrency      = EXCLUDED.tradingCurrency,
+          settlementCurrency   = EXCLUDED.settlementCurrency
+       """.update
+    }
+
+    type AccountInfo =
+      (
+          String,
+          String,
+          LocalDateTime,
+          Option[LocalDateTime],
+          String,
+          String,
+          Option[String],
+          Option[String]
+      )
+
+    private def toAccountInfo(account: Account): AccountInfo =
+      (
+        account.no.value.value,
+        account.name.value.value,
+        account.dateOfOpen,
+        account.dateOfClose,
+        account.accountType.entryName,
+        account.baseCurrency.name,
+        account.tradingCurrency.map(_.name),
+        account.settlementCurrency.map(_.name)
+      )
+
+    def insertMany(accounts: List[Account]): ConnectionIO[Int] = {
+      val sql = """
+        INSERT INTO accounts
+          (
+            no,
+            name, 
+            dateOfOpen, 
+            dateOfClose,
+            type,
+            baseCurrency,
+            tradingCurrency,
+            settlementCurrency
+          )
+        VALUES ( ?, ?, ?, ?, ?, ?, ?, ?)
+       """
+      Update[AccountInfo](sql).updateMany(accounts.map(toAccountInfo))
     }
 
     implicit val accountRead: Read[Account] =
@@ -170,6 +238,18 @@ object DoobieAccountRepository {
 
     def getByDateOfOpen(openDate: LocalDate): Query0[Account] = sql"""
       select * from accounts where dateOfOpen = $openDate
+      """.query[Account]
+
+    def getAllClosed: Query0[Account] = sql"""
+      select * from accounts where dateOfClose is not null
+      """.query[Account]
+
+    def getAllClosedAfter(date: LocalDate): Query0[Account] = sql"""
+      select * from accounts where dateOfClose > $date
+      """.query[Account]
+
+    def getByType(accountType: String): Query0[Account] = sql"""
+      select * from accounts where accountType = $accountType
       """.query[Account]
   }
 }
