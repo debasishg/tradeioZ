@@ -23,12 +23,8 @@ import model.order.UnitPrice
 
 import _root_.shapeless.::
 import _root_.shapeless.HNil
-import tradex.domain.model.instrument.InstrumentType.CCY
-import tradex.domain.model.instrument.InstrumentType.Equity
-import tradex.domain.model.instrument.InstrumentType.FixedIncome
 
 object instrument {
-  // instrument
   type ISINCodeString = String Refined AllOf[
     MaxSize[W.`12`.T] ::
       MinSize[W.`12`.T] ::
@@ -108,7 +104,8 @@ object instrument {
     private[model] def validateUnitPrice(
         price: BigDecimal
     ): Validation[String, UnitPrice] = {
-      validate[UnitPrice](price).mapError(s => s"Unit Price has to be positive: found $price (root cause: $s")
+      validate[UnitPrice](price)
+			  .mapError(s => s"Unit Price has to be positive: found $price (root cause: $s")
     }
 
     private[domain] def instrument(
@@ -122,9 +119,9 @@ object instrument {
         couponRate: Option[Money],          // for Fixed Income
         couponFrequency: Option[BigDecimal] // for Fixed Income
     ): Validation[String, Instrument] = instrumentType match {
-      case CCY         => ccy(isinCode, name, dateOfIssue)
-      case Equity      => equity(isinCode, name, dateOfIssue, lotSize, unitPrice)
-      case FixedIncome => fixedIncome(isinCode, name, dateOfIssue, dateOfMaturity, lotSize, couponRate, couponFrequency)
+      case InstrumentType.CCY         => ccy(isinCode, name, dateOfIssue)
+      case InstrumentType.Equity      => equity(isinCode, name, dateOfIssue, lotSize, unitPrice)
+      case InstrumentType.FixedIncome => fixedIncome(isinCode, name, dateOfIssue, dateOfMaturity, lotSize, couponRate, couponFrequency)
     }
 
     private[domain] def ccy(

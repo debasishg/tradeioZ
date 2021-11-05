@@ -134,13 +134,15 @@ object order {
     private[model] def validateQuantity(
         qty: BigDecimal
     ): Validation[String, Quantity] = {
-      validate[Quantity](qty).mapError(s => s"Quantity has to be positive: found $qty (root cause: $s)")
+      validate[Quantity](qty)
+			  .mapError(s => s"Quantity has to be positive: found $qty (root cause: $s)")
     }
 
     private[model] def validateUnitPrice(
         price: BigDecimal
     ): Validation[String, UnitPrice] = {
-      validate[UnitPrice](price).mapError(s => s"Unit Price has to be positive: found $price (root cause: $s)")
+      validate[UnitPrice](price)
+			  .mapError(s => s"Unit Price has to be positive: found $price (root cause: $s)")
     }
 
     private[model] def validateOrderNo(
@@ -152,7 +154,9 @@ object order {
     private[model] def validateBuySell(
         bs: String
     ): Validation[String, String] = {
-			Validation.fromEither(BuySell.withNameEither(bs).map(_.entryName)).mapError(_ => s"Invalid buySell $bs")
+			Validation
+			  .fromEither(BuySell.withNameEither(bs).map(_.entryName))
+				.mapError(_ => s"Invalid buySell $bs")
     }
   }
 }

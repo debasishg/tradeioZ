@@ -184,7 +184,8 @@ object account {
       )
 
     private[model] def validateAccountName(name: String): Validation[String, AccountName] =
-      validate[AccountName](name).mapError(s => s"Account Name cannot be blank (root cause: $s")
+      validate[AccountName](name)
+        .mapError(s => s"Account Name cannot be blank (root cause: $s")
 
     private def validateOpenCloseDate(
         od: LocalDateTime,
