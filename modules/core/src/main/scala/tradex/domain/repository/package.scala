@@ -8,15 +8,21 @@ import model.account._
 package object repository {
   type AccountRepository = Has[AccountRepository.Service]
 
-  def query(no: String): RIO[AccountRepository, Option[Account]] =
+  def query(no: AccountNo): RIO[AccountRepository, Option[Account]] =
     ZIO.accessM(_.get.query(no))
 
-  def all: RIO[AccountRepository, Seq[Account]] =
+  def all: RIO[AccountRepository, List[Account]] =
     ZIO.accessM(_.get.all)
 
   def store(a: Account): RIO[AccountRepository, Account] =
     ZIO.accessM(_.get.store(a))
 
-  def query(openedOn: LocalDate): RIO[AccountRepository, Seq[Account]] =
+  def query(openedOn: LocalDate): RIO[AccountRepository, List[Account]] =
     ZIO.accessM(_.get.query(openedOn))
+
+  def allClosed(closeDate: Option[LocalDate]): RIO[AccountRepository, List[Account]] =
+    ZIO.accessM(_.get.allClosed(closeDate))
+
+  def allAccountsOfType(accountType: AccountType): RIO[AccountRepository, List[Account]] =
+    ZIO.accessM(_.get.allAccountsOfType(accountType))
 }

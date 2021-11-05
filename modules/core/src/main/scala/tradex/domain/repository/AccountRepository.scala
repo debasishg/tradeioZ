@@ -7,9 +7,23 @@ import model.account._
 
 object AccountRepository {
   trait Service {
-    def query(no: String): Task[Option[Account]]
+
+    /** query by account number */
+    def query(no: AccountNo): Task[Option[Account]]
+
+    /** store */
     def store(a: Account): Task[Account]
-    def query(openedOnDate: LocalDate): Task[Seq[Account]]
-    def all: Task[Seq[Account]]
+
+    /** query by opened date */
+    def query(openedOnDate: LocalDate): Task[List[Account]]
+
+    /** all accounts */
+    def all: Task[List[Account]]
+
+    /** all closed accounts, if date supplied then all closed after that date */
+    def allClosed(closeDate: Option[LocalDate]): Task[List[Account]]
+
+    /** all accounts trading / settlement / both */
+    def allAccountsOfType(accountType: AccountType): Task[List[Account]]
   }
 }

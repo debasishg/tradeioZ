@@ -21,15 +21,15 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
 
   val accountRepository: AccountRepository.Service = new AccountRepository.Service {
 
-    def all: Task[Seq[Account]] =
+    def all: Task[List[Account]] =
       SQL.getAll
         .to[List]
         .transact(xa)
         .orDie
 
-    def query(no: String): Task[Option[Account]] =
+    def query(no: AccountNo): Task[Option[Account]] =
       SQL
-        .get(no)
+        .get(no.value.value)
         .option
         .transact(xa)
         .orDie
@@ -42,13 +42,26 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
         .map(_ => a)
         .orDie
 
-    def query(openedOnDate: LocalDate): Task[Seq[Account]] =
+    def query(openedOnDate: LocalDate): Task[List[Account]] =
       SQL
         .getByDateOfOpen(openedOnDate)
         .to[List]
         .transact(xa)
         .orDie
 
+    def allClosed(closeDate: Option[LocalDate]): Task[List[Account]] =
+      closeDate
+        .map { cd =>
+          SQL.getAllClosedAfter(cd).to[List].transact(xa).orDie
+        }
+        .getOrElse(SQL.getAllClosed.to[List].transact(xa).orDie)
+
+    def allAccountsOfType(accountType: AccountType): Task[List[Account]] =
+      SQL
+        .getByType(accountType.entryName)
+        .to[List]
+        .transact(xa)
+        .orDie
   }
 }
 
@@ -170,6 +183,18 @@ object DoobieAccountRepository {
 
     def getByDateOfOpen(openDate: LocalDate): Query0[Account] = sql"""
       select * from accounts where dateOfOpen = $openDate
+      """.query[Account]
+
+    def getAllClosed: Query0[Account] = sql"""
+      select * from accounts where dateOfClose is not null
+      """.query[Account]
+
+    def getAllClosedAfter(date: LocalDate): Query0[Account] = sql"""
+      select * from accounts where dateOfClose > $date
+      """.query[Account]
+
+    def getByType(accountType: String): Query0[Account] = sql"""
+      select * from accounts where accountType = $accountType
       """.query[Account]
   }
 }
