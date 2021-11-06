@@ -9,7 +9,7 @@ object AccountRepository {
   trait Service {
 
     /** query by account number */
-    def query(no: AccountNo): Task[Option[Account]]
+    def queryByAccountNo(no: AccountNo): Task[Option[Account]]
 
     /** store */
     def store(a: Account): Task[Account]
@@ -18,7 +18,7 @@ object AccountRepository {
     def store(as: List[Account]): Task[Unit]
 
     /** query by opened date */
-    def query(openedOnDate: LocalDate): Task[List[Account]]
+    def allOpenedOn(openedOnDate: LocalDate): Task[List[Account]]
 
     /** all accounts */
     def all: Task[List[Account]]
