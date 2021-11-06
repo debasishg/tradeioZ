@@ -62,13 +62,13 @@ object user {
         name: String
     ): Validation[String, UserName] =
       validate[UserName](name)
-			  .mapError(s => s"User Name cannot be blank: (Root Cause: $s)")
+        .mapError(s => s"User Name cannot be blank: (Root Cause: $s)")
 
     private[model] def validatePassword(
         name: String
     ): Validation[String, EncryptedPassword] =
       validate[EncryptedPassword](name)
-			  .mapError(s => s"User Password cannot be blank: (Root cause: $s)")
+        .mapError(s => s"User Password cannot be blank: (Root cause: $s)")
   }
 
   // --------- user registration -----------
