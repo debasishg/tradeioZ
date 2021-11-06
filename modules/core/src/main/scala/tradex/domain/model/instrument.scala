@@ -105,7 +105,7 @@ object instrument {
         price: BigDecimal
     ): Validation[String, UnitPrice] = {
       validate[UnitPrice](price)
-			  .mapError(s => s"Unit Price has to be positive: found $price (root cause: $s")
+        .mapError(s => s"Unit Price has to be positive: found $price (root cause: $s")
     }
 
     private[domain] def instrument(
@@ -119,9 +119,10 @@ object instrument {
         couponRate: Option[Money],          // for Fixed Income
         couponFrequency: Option[BigDecimal] // for Fixed Income
     ): Validation[String, Instrument] = instrumentType match {
-      case InstrumentType.CCY         => ccy(isinCode, name, dateOfIssue)
-      case InstrumentType.Equity      => equity(isinCode, name, dateOfIssue, lotSize, unitPrice)
-      case InstrumentType.FixedIncome => fixedIncome(isinCode, name, dateOfIssue, dateOfMaturity, lotSize, couponRate, couponFrequency)
+      case InstrumentType.CCY    => ccy(isinCode, name, dateOfIssue)
+      case InstrumentType.Equity => equity(isinCode, name, dateOfIssue, lotSize, unitPrice)
+      case InstrumentType.FixedIncome =>
+        fixedIncome(isinCode, name, dateOfIssue, dateOfMaturity, lotSize, couponRate, couponFrequency)
     }
 
     private[domain] def ccy(
