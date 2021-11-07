@@ -10,6 +10,7 @@ package object repository {
   type AccountRepository    = Has[AccountRepository.Service]
   type InstrumentRepository = Has[InstrumentRepository.Service]
 
+  /** AccountRepository */
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =
     ZIO.accessM(_.get.queryByAccountNo(no))
 
@@ -31,6 +32,7 @@ package object repository {
   def allAccountsOfType(accountType: AccountType): RIO[AccountRepository, List[Account]] =
     ZIO.accessM(_.get.allAccountsOfType(accountType))
 
+  /** InstrumentRepository */
   def queryByISINCode(isin: ISINCode): RIO[InstrumentRepository, Option[Instrument]] =
     ZIO.accessM(_.get.queryByISINCode(isin))
 
