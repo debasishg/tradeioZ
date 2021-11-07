@@ -76,9 +76,9 @@ object DoobieOrderRepository {
         )
       ].map { case (no, dt, ano, isin, qty, up, bs) =>
         val vorder = for {
-          li <- Order.makeLineItem(no, isin, qty, up, bs)
-          o  <- Order.makeOrder(no, dt, ano, NonEmptyList(li))
-        } yield o
+          lineItems <- Order.makeLineItem(no, isin, qty, up, bs)
+          order     <- Order.makeOrder(no, dt, ano, NonEmptyList(lineItems))
+        } yield order
         vorder
           .fold(exs => throw new Exception(exs.toList.mkString("/")), identity)
       }
