@@ -27,7 +27,7 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
         .transact(xa)
         .orDie
 
-    def query(no: AccountNo): Task[Option[Account]] =
+    def queryByAccountNo(no: AccountNo): Task[Option[Account]] =
       SQL
         .get(no.value.value)
         .option
@@ -49,7 +49,7 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
         .map(_ => ())
         .orDie
 
-    def query(openedOnDate: LocalDate): Task[List[Account]] =
+    def allOpenedOn(openedOnDate: LocalDate): Task[List[Account]] =
       SQL
         .getByDateOfOpen(openedOnDate)
         .to[List]
