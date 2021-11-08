@@ -39,6 +39,7 @@ final class DoobieOrderRepository(xa: Transactor[Task]) {
         .transact(xa)
         .orDie
     }
+
     def queryByOrderDate(date: LocalDate): Task[List[Order]] = {
       SQL
         .getByOrderDate(date)
@@ -52,6 +53,7 @@ final class DoobieOrderRepository(xa: Transactor[Task]) {
         .transact(xa)
         .orDie
     }
+
     def store(ord: Order): Task[Order] = {
       val res = for {
         _ <- SQL.deleteLineItems(ord.no.value.value).run
@@ -63,39 +65,15 @@ final class DoobieOrderRepository(xa: Transactor[Task]) {
         .map(_ => ord)
         .orDie
     }
-    def store(orders: NonEmptyList[Order]): Task[Unit] = ???
+
+    def store(orders: NonEmptyList[Order]): Task[Unit] =
+      orders.forEach(order => store(order)).map(_ => ())
   }
 }
 
 object DoobieOrderRepository {
   def layer: ZLayer[DbConfigProvider with Blocking, Throwable, OrderRepository] = {
-    import zio.interop.catz.implicits._
-
-    implicit val zioRuntime: zio.Runtime[zio.ZEnv] = zio.Runtime.default
-
-    implicit val dispatcher: cats.effect.std.Dispatcher[zio.Task] =
-      zioRuntime
-        .unsafeRun(
-          cats.effect.std
-            .Dispatcher[zio.Task]
-            .allocated
-        )
-        ._1
-
-    def mkTransactor(cfg: DBConfig): ZManaged[Blocking, Throwable, HikariTransactor[Task]] =
-      for {
-        rt <- ZIO.runtime[Any].toManaged_
-        xa <-
-          HikariTransactor
-            .newHikariTransactor[Task](
-              cfg.driver,
-              cfg.url,
-              cfg.user,
-              cfg.password,
-              rt.platform.executor.asEC
-            )
-            .toManaged
-      } yield xa
+    import CatzInterop._
 
     ZLayer.fromManaged {
       for {
@@ -104,6 +82,7 @@ object DoobieOrderRepository {
       } yield new DoobieOrderRepository(transactor).orderRepository
     }
   }
+
   object SQL {
     def upsertOrder(order: Order): Update0 = {
       sql"""
