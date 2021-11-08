@@ -1,14 +1,17 @@
 package tradex.domain
 
 import zio._
+import zio.prelude.NonEmptyList
 import java.time.LocalDate
 
 import model.account._
 import model.instrument._
+import model.order._
 
 package object repository {
   type AccountRepository    = Has[AccountRepository.Service]
   type InstrumentRepository = Has[InstrumentRepository.Service]
+  type OrderRepository      = Has[OrderRepository.Service]
 
   /** AccountRepository */
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =
@@ -41,4 +44,17 @@ package object repository {
 
   def store(ins: Instrument): RIO[InstrumentRepository, Instrument] =
     ZIO.accessM(_.get.store(ins))
+
+  /** OrderRepository */
+  def queryByOrderNo(no: OrderNo): RIO[OrderRepository, Option[Order]] =
+    ZIO.accessM(_.get.queryByOrderNo(no))
+
+  def queryByOrderDate(date: LocalDate): RIO[OrderRepository, List[Order]] =
+    ZIO.accessM(_.get.queryByOrderDate(date))
+
+  def store(ord: Order): RIO[OrderRepository, Order] =
+    ZIO.accessM(_.get.store(ord))
+
+  def store(orders: NonEmptyList[Order]): RIO[OrderRepository, Unit] =
+    ZIO.accessM(_.get.store(orders))
 }

@@ -2,7 +2,6 @@ package tradex.domain
 package repository
 
 import java.time.{ LocalDate, LocalDateTime }
-import squants.market._
 import zio._
 import zio.prelude._
 import zio.blocking.Blocking
@@ -16,8 +15,6 @@ import doobie.postgres.implicits._
 
 import config._
 import model.order._
-import model.account._
-import model.instrument._
 
 final class DoobieOrderRepository(xa: Transactor[Task]) {
   import DoobieOrderRepository._
@@ -55,13 +52,117 @@ final class DoobieOrderRepository(xa: Transactor[Task]) {
         .transact(xa)
         .orDie
     }
-    def store(ord: Order): Task[Order]                 = ???
+    def store(ord: Order): Task[Order] = {
+      val res = for {
+        _ <- SQL.deleteLineItems(ord.no.value.value).run
+        _ <- SQL.upsertOrder(ord).run
+        l <- SQL.insertLineItems(ord.items.toList)
+      } yield l
+      res
+        .transact(xa)
+        .map(_ => ord)
+        .orDie
+    }
     def store(orders: NonEmptyList[Order]): Task[Unit] = ???
   }
 }
 
 object DoobieOrderRepository {
+  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, OrderRepository] = {
+    import zio.interop.catz.implicits._
+
+    implicit val zioRuntime: zio.Runtime[zio.ZEnv] = zio.Runtime.default
+
+    implicit val dispatcher: cats.effect.std.Dispatcher[zio.Task] =
+      zioRuntime
+        .unsafeRun(
+          cats.effect.std
+            .Dispatcher[zio.Task]
+            .allocated
+        )
+        ._1
+
+    def mkTransactor(cfg: DBConfig): ZManaged[Blocking, Throwable, HikariTransactor[Task]] =
+      for {
+        rt <- ZIO.runtime[Any].toManaged_
+        xa <-
+          HikariTransactor
+            .newHikariTransactor[Task](
+              cfg.driver,
+              cfg.url,
+              cfg.user,
+              cfg.password,
+              rt.platform.executor.asEC
+            )
+            .toManaged
+      } yield xa
+
+    ZLayer.fromManaged {
+      for {
+        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+        transactor <- mkTransactor(cfg)
+      } yield new DoobieOrderRepository(transactor).orderRepository
+    }
+  }
   object SQL {
+    def upsertOrder(order: Order): Update0 = {
+      sql"""
+        INSERT INTO orders
+        VALUES (${order.no.value.value}, ${order.date}, ${order.accountNo.value.value})
+        ON CONFLICT(no) DO UPDATE SET
+          dateOfOrder = EXCLUDED.dateOfOrder,
+          accountNo   = EXCLUDED.accountNo
+       """.update
+    }
+
+    def insertLineItems(lis: List[LineItem]): ConnectionIO[Int] = {
+      val sql = """
+        INSERT INTO lineItems
+          (
+            orderNo,
+            isinCode, 
+            quantity, 
+            unitPrice,
+            buySellFlag
+          )
+        VALUES ( ?, ?, ?, ?, ? )
+       """
+      Update[LineItem](sql).updateMany(lis)
+    }
+
+    implicit val orderWrite: Write[Order] =
+      Write[
+        (
+            String,
+            String,
+            LocalDateTime
+        )
+      ].contramap(order =>
+        (
+          order.no.value.value,
+          order.accountNo.value.value,
+          order.date
+        )
+      )
+
+    implicit def lineItemWrite: Write[LineItem] =
+      Write[
+        (
+            String,
+            String,
+            BigDecimal,
+            BigDecimal,
+            String
+        )
+      ].contramap(lineItem =>
+        (
+          lineItem.orderNo.value.value,
+          lineItem.instrument.value.value,
+          lineItem.quantity.value.value,
+          lineItem.unitPrice.value.value,
+          lineItem.buySell.entryName
+        )
+      )
 
     implicit val orderLineItemRead: Read[Order] =
       Read[
@@ -98,5 +199,10 @@ object DoobieOrderRepository {
         WHERE Date(o.dateOfOrder) = $orderDate
         AND   o.no = l.orderNo
        """.query[Order]
+
+    def deleteLineItems(orderNo: String): Update0 =
+      sql""" 
+        DELETE FROM lineItems l WHERE l.orderNo = $orderNo
+      """.update
   }
 }
