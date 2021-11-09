@@ -7,12 +7,13 @@ import zio._
 import zio.blocking.Blocking
 import zio.interop.catz._
 import doobie._
-import doobie.hikari._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
-import config._
 import model.instrument._
+import model.order._
+import config._
+import codecs._
 
 final class DoobieInstrumentRepository(xa: Transactor[Task]) {
   import DoobieInstrumentRepository.SQL
@@ -60,13 +61,13 @@ object DoobieInstrumentRepository {
       sql"""
         INSERT INTO instruments
         VALUES (
-          ${instrument.isinCode.value.value},
-          ${instrument.name.value.value},
+          ${instrument.isinCode},
+          ${instrument.name},
           ${instrument.dateOfIssue},
           ${instrument.dateOfMaturity},
-          ${instrument.lotSize.value.value},
-          ${instrument.unitPrice.map(_.value.value)},
-          ${instrument.couponRate.map(_.amount)},
+          ${instrument.lotSize},
+          ${instrument.unitPrice},
+          ${instrument.couponRate},
           ${instrument.couponFrequency}
         )
         ON CONFLICT(isinCode) DO UPDATE SET
@@ -81,33 +82,39 @@ object DoobieInstrumentRepository {
        """.update
     }
 
+    // when writing we have a valid `Instrument` - hence we can use
+    // Scala data types
     implicit val instrumentWrite: Write[Instrument] =
       Write[
         (
-            String,
-            String,
-            String,
+            ISINCode,
+            InstrumentName,
+            InstrumentType,
             Option[LocalDateTime],
             Option[LocalDateTime],
-            Int,
-            Option[BigDecimal],
-            Option[BigDecimal],
+            LotSize,
+            Option[UnitPrice],
+            Option[Money],
             Option[BigDecimal]
         )
       ].contramap(instrument =>
         (
-          instrument.isinCode.value.value,
-          instrument.name.value.value,
-          instrument.instrumentType.entryName,
+          instrument.isinCode,
+          instrument.name,
+          instrument.instrumentType,
           instrument.dateOfIssue,
           instrument.dateOfMaturity,
-          instrument.lotSize.value.value,
-          instrument.unitPrice.map(_.value.value),
-          instrument.couponRate.map(_.amount),
+          instrument.lotSize,
+          instrument.unitPrice,
+          instrument.couponRate,
           instrument.couponFrequency
         )
       )
 
+    // when reading we can encounter invalid Scala types since
+    // data might have been inserted into the database external to the
+    // application. Hence we use raw types and a smart constructor that
+    // validates the data types
     implicit val instrumentRead: Read[Instrument] =
       Read[
         (

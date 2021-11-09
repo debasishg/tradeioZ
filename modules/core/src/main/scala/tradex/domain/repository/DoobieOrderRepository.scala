@@ -8,13 +8,15 @@ import zio.blocking.Blocking
 import zio.interop.catz._
 
 import doobie._
-import doobie.hikari._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
 
 import config._
+import codecs._
+import model.account._
 import model.order._
+import model.instrument._
 
 final class DoobieOrderRepository(xa: Transactor[Task]) {
   import DoobieOrderRepository._
@@ -87,7 +89,7 @@ object DoobieOrderRepository {
     def upsertOrder(order: Order): Update0 = {
       sql"""
         INSERT INTO orders
-        VALUES (${order.no.value.value}, ${order.date}, ${order.accountNo.value.value})
+        VALUES (${order.no}, ${order.date}, ${order.accountNo})
         ON CONFLICT(no) DO UPDATE SET
           dateOfOrder = EXCLUDED.dateOfOrder,
           accountNo   = EXCLUDED.accountNo
@@ -109,40 +111,48 @@ object DoobieOrderRepository {
       Update[LineItem](sql).updateMany(lis)
     }
 
+    // when writing we have a valid `Order` - hence we can use
+    // Scala data types
     implicit val orderWrite: Write[Order] =
       Write[
         (
-            String,
-            String,
+            OrderNo,
+            AccountNo,
             LocalDateTime
         )
       ].contramap(order =>
         (
-          order.no.value.value,
-          order.accountNo.value.value,
+          order.no,
+          order.accountNo,
           order.date
         )
       )
 
+    // when writing we have a valid `LineItem` - hence we can use
+    // Scala data types
     implicit def lineItemWrite: Write[LineItem] =
       Write[
         (
-            String,
-            String,
-            BigDecimal,
-            BigDecimal,
-            String
+            OrderNo,
+            ISINCode,
+            Quantity,
+            UnitPrice,
+            BuySell
         )
       ].contramap(lineItem =>
         (
-          lineItem.orderNo.value.value,
-          lineItem.instrument.value.value,
-          lineItem.quantity.value.value,
-          lineItem.unitPrice.value.value,
-          lineItem.buySell.entryName
+          lineItem.orderNo,
+          lineItem.instrument,
+          lineItem.quantity,
+          lineItem.unitPrice,
+          lineItem.buySell
         )
       )
 
+    // when reading we can encounter invalid Scala types since
+    // data might have been inserted into the database external to the
+    // application. Hence we use raw types and a smart constructor that
+    // validates the data types
     implicit val orderLineItemRead: Read[Order] =
       Read[
         (
