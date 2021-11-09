@@ -7,12 +7,13 @@ import zio._
 import zio.blocking.Blocking
 import zio.interop.catz._
 import doobie._
-import doobie.hikari._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
-import config._
 import model.instrument._
+import model.order._
+import config._
+import codecs._
 
 final class DoobieInstrumentRepository(xa: Transactor[Task]) {
   import DoobieInstrumentRepository.SQL
@@ -84,26 +85,26 @@ object DoobieInstrumentRepository {
     implicit val instrumentWrite: Write[Instrument] =
       Write[
         (
-            String,
-            String,
-            String,
+            ISINCode,
+            InstrumentName,
+            InstrumentType,
             Option[LocalDateTime],
             Option[LocalDateTime],
-            Int,
-            Option[BigDecimal],
-            Option[BigDecimal],
+            LotSize,
+            Option[UnitPrice],
+            Option[Money],
             Option[BigDecimal]
         )
       ].contramap(instrument =>
         (
-          instrument.isinCode.value.value,
-          instrument.name.value.value,
-          instrument.instrumentType.entryName,
+          instrument.isinCode,
+          instrument.name,
+          instrument.instrumentType,
           instrument.dateOfIssue,
           instrument.dateOfMaturity,
-          instrument.lotSize.value.value,
-          instrument.unitPrice.map(_.value.value),
-          instrument.couponRate.map(_.amount),
+          instrument.lotSize,
+          instrument.unitPrice,
+          instrument.couponRate,
           instrument.couponFrequency
         )
       )

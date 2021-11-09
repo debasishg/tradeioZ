@@ -8,13 +8,13 @@ import zio.blocking.Blocking
 import zio.interop.catz._
 
 import doobie._
-import doobie.hikari._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
 
 import config._
 import model.account._
+import codecs._
 
 final class DoobieAccountRepository(xa: Transactor[Task]) {
   import DoobieAccountRepository.SQL
@@ -89,14 +89,14 @@ object DoobieAccountRepository {
       sql"""
         INSERT INTO accounts
         VALUES (
-          ${account.no.value.value}, 
-          ${account.name.value.value}, 
+          ${account.no}, 
+          ${account.name}, 
           ${account.dateOfOpen}, 
           ${account.dateOfClose}, 
-          ${account.accountType.entryName}, 
-          ${account.baseCurrency.name}, 
-          ${account.tradingCurrency.map(_.name)}, 
-          ${account.settlementCurrency.map(_.name)}
+          ${account.accountType}, 
+          ${account.baseCurrency}, 
+          ${account.tradingCurrency}, 
+          ${account.settlementCurrency}
         )
         ON CONFLICT(no) DO UPDATE SET
           name                 = EXCLUDED.name,
@@ -109,28 +109,30 @@ object DoobieAccountRepository {
        """.update
     }
 
+    // when writing we have a valid `Account` - hence we can use
+    // Scala data types
     implicit val accountWrite: Write[Account] =
       Write[
         (
-            String,
-            String,
+            AccountNo,
+            AccountName,
             LocalDateTime,
             Option[LocalDateTime],
-            String,
-            String,
-            Option[String],
-            Option[String]
+            AccountType,
+            Currency,
+            Option[Currency],
+            Option[Currency]
         )
       ].contramap(account =>
         (
-          account.no.value.value,
-          account.name.value.value,
+          account.no,
+          account.name,
           account.dateOfOpen,
           account.dateOfClose,
-          account.accountType.entryName,
-          account.baseCurrency.name,
-          account.tradingCurrency.map(_.name),
-          account.settlementCurrency.map(_.name)
+          account.accountType,
+          account.baseCurrency,
+          account.tradingCurrency,
+          account.settlementCurrency
         )
       )
 
@@ -152,6 +154,10 @@ object DoobieAccountRepository {
       Update[Account](sql).updateMany(accounts)
     }
 
+    // when reading we can encounter invalid Scala types since
+    // data might have been inserted into the database external to the
+    // application. Hence we use raw types and a smart constructor that
+    // validates the data types
     implicit val accountRead: Read[Account] =
       Read[
         (

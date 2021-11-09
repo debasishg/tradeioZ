@@ -8,13 +8,15 @@ import zio.blocking.Blocking
 import zio.interop.catz._
 
 import doobie._
-import doobie.hikari._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
 
 import config._
+import codecs._
+import model.account._
 import model.order._
+import model.instrument._
 
 final class DoobieOrderRepository(xa: Transactor[Task]) {
   import DoobieOrderRepository._
@@ -112,14 +114,14 @@ object DoobieOrderRepository {
     implicit val orderWrite: Write[Order] =
       Write[
         (
-            String,
-            String,
+            OrderNo,
+            AccountNo,
             LocalDateTime
         )
       ].contramap(order =>
         (
-          order.no.value.value,
-          order.accountNo.value.value,
+          order.no,
+          order.accountNo,
           order.date
         )
       )
@@ -127,19 +129,19 @@ object DoobieOrderRepository {
     implicit def lineItemWrite: Write[LineItem] =
       Write[
         (
-            String,
-            String,
-            BigDecimal,
-            BigDecimal,
-            String
+            OrderNo,
+            ISINCode,
+            Quantity,
+            UnitPrice,
+            BuySell
         )
       ].contramap(lineItem =>
         (
-          lineItem.orderNo.value.value,
-          lineItem.instrument.value.value,
-          lineItem.quantity.value.value,
-          lineItem.unitPrice.value.value,
-          lineItem.buySell.entryName
+          lineItem.orderNo,
+          lineItem.instrument,
+          lineItem.quantity,
+          lineItem.unitPrice,
+          lineItem.buySell
         )
       )
 
