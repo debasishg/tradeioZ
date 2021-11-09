@@ -82,6 +82,8 @@ object DoobieInstrumentRepository {
        """.update
     }
 
+    // when writing we have a valid `Instrument` - hence we can use
+    // Scala data types
     implicit val instrumentWrite: Write[Instrument] =
       Write[
         (
@@ -109,6 +111,10 @@ object DoobieInstrumentRepository {
         )
       )
 
+    // when reading we can encounter invalid Scala types since
+    // data might have been inserted into the database external to the
+    // application. Hence we use raw types and a smart constructor that
+    // validates the data types
     implicit val instrumentRead: Read[Instrument] =
       Read[
         (

@@ -111,6 +111,8 @@ object DoobieOrderRepository {
       Update[LineItem](sql).updateMany(lis)
     }
 
+    // when writing we have a valid `Order` - hence we can use
+    // Scala data types
     implicit val orderWrite: Write[Order] =
       Write[
         (
@@ -126,6 +128,8 @@ object DoobieOrderRepository {
         )
       )
 
+    // when writing we have a valid `LineItem` - hence we can use
+    // Scala data types
     implicit def lineItemWrite: Write[LineItem] =
       Write[
         (
@@ -145,6 +149,10 @@ object DoobieOrderRepository {
         )
       )
 
+    // when reading we can encounter invalid Scala types since
+    // data might have been inserted into the database external to the
+    // application. Hence we use raw types and a smart constructor that
+    // validates the data types
     implicit val orderLineItemRead: Read[Order] =
       Read[
         (
