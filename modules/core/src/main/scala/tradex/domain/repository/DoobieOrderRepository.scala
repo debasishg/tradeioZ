@@ -89,7 +89,7 @@ object DoobieOrderRepository {
     def upsertOrder(order: Order): Update0 = {
       sql"""
         INSERT INTO orders
-        VALUES (${order.no.value.value}, ${order.date}, ${order.accountNo.value.value})
+        VALUES (${order.no}, ${order.date}, ${order.accountNo})
         ON CONFLICT(no) DO UPDATE SET
           dateOfOrder = EXCLUDED.dateOfOrder,
           accountNo   = EXCLUDED.accountNo

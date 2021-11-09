@@ -61,13 +61,13 @@ object DoobieInstrumentRepository {
       sql"""
         INSERT INTO instruments
         VALUES (
-          ${instrument.isinCode.value.value},
-          ${instrument.name.value.value},
+          ${instrument.isinCode},
+          ${instrument.name},
           ${instrument.dateOfIssue},
           ${instrument.dateOfMaturity},
-          ${instrument.lotSize.value.value},
-          ${instrument.unitPrice.map(_.value.value)},
-          ${instrument.couponRate.map(_.amount)},
+          ${instrument.lotSize},
+          ${instrument.unitPrice},
+          ${instrument.couponRate},
           ${instrument.couponFrequency}
         )
         ON CONFLICT(isinCode) DO UPDATE SET
