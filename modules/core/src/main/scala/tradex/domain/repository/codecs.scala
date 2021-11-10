@@ -1,97 +1,92 @@
 package tradex.domain
 package repository
 
+import java.util.UUID
 import squants.market._
 import doobie._
+import doobie.postgres.implicits._
+
 import NewtypeRefinedOps._
 import model.account._
 import model.instrument._
 import model.order._
+import model.user._
 
 object codecs {
-  implicit val accountNoGet: Get[AccountNo] =
-    Get[String]
-      .map(s => validate[AccountNo](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
+  private def accountNoFromString(s: String) = {
+    validate[AccountNo](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val accountNoMeta: Meta[AccountNo] =
+    Meta[String].timap(accountNoFromString)(_.value.value)
 
-  implicit val accountNoPut: Put[AccountNo] = Put[String].contramap(_.value.value)
+  private def accountNameFromString(s: String) = {
+    validate[AccountName](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val accountNameMeta: Meta[AccountName] =
+    Meta[String].timap(accountNameFromString)(_.value.value)
 
-  implicit val accountNameGet: Get[AccountName] =
-    Get[String]
-      .map(s => validate[AccountName](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
+  implicit val accountTypeMeta: Meta[AccountType] =
+    Meta[String].timap(s => AccountType.withName(s))(_.entryName)
 
-  implicit val accountNamePut: Put[AccountName] = Put[String].contramap(_.value.value)
+  implicit val currencyMeta: Meta[Currency] = Meta[String].timap(s => Currency(s).get)(_.name)
 
-  implicit val accountTypeGet: Get[AccountType] =
-    Get[String]
-      .map(s => AccountType.withName(s))
+  private def isinFromString(s: String) = {
+    validate[ISINCode](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val isinCodeMeta: Meta[ISINCode] =
+    Meta[String].timap(isinFromString)(_.value.value)
 
-  implicit val accountTypePut: Put[AccountType] = Put[String].contramap(_.entryName)
+  private def instrumentNameFromString(s: String) = {
+    validate[InstrumentName](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val instrumentNameMeta: Meta[InstrumentName] =
+    Meta[String].timap(instrumentNameFromString)(_.value.value)
 
-  implicit val currencyGet: Get[Currency] =
-    Get[String]
-      .map(s => Currency(s).get)
+  implicit val instrumentTypeMeta: Meta[InstrumentType] =
+    Meta[String].timap(s => InstrumentType.withName(s))(_.entryName)
 
-  implicit val currencyPut: Put[Currency] = Put[String].contramap(_.name)
+  private def lotSizeFromInt(s: Int) = {
+    validate[LotSize](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val lotSizeMeta: Meta[LotSize] =
+    Meta[Int].timap(lotSizeFromInt)(_.value.value)
 
-  implicit val isinCodeGet: Get[ISINCode] =
-    Get[String]
-      .map(s => validate[ISINCode](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
+  private def unitPriceFromBigDecimal(s: BigDecimal) = {
+    validate[UnitPrice](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val unitPriceMeta: Meta[UnitPrice] =
+    Meta[BigDecimal].timap(unitPriceFromBigDecimal)(_.value.value)
 
-  implicit val isinCodePut: Put[ISINCode] = Put[String].contramap(_.value.value)
+  implicit val moneyMeta: Meta[Money] =
+    Meta[BigDecimal].timap(s => USD(s))(_.amount)
 
-  implicit val instrumentNameGet: Get[InstrumentName] =
-    Get[String]
-      .map(s => validate[InstrumentName](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
+  private def orderNoFromString(s: String) = {
+    validate[OrderNo](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val orderNoMeta: Meta[OrderNo] =
+    Meta[String].timap(orderNoFromString)(_.value.value)
 
-  implicit val instrumentNamePut: Put[InstrumentName] = Put[String].contramap(_.value.value)
+  private def quantityFromBigDecimal(s: BigDecimal) = {
+    validate[Quantity](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val quantityMeta: Meta[Quantity] =
+    Meta[BigDecimal].timap(quantityFromBigDecimal)(_.value.value)
 
-  implicit val instrumentTypeGet: Get[InstrumentType] =
-    Get[String]
-      .map(s => InstrumentType.withName(s))
+  implicit val buySellMeta: Meta[BuySell] =
+    Meta[String].timap(s => BuySell.withName(s))(_.entryName)
 
-  implicit val instrumentTypePut: Put[InstrumentType] = Put[String].contramap(_.entryName)
+  implicit val userIdMeta: Meta[UserId] =
+    Meta[UUID].timap(u => UserId(u))(_.value)
 
-  implicit val lotSizeGet: Get[LotSize] =
-    Get[Int]
-      .map(s => validate[LotSize](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
+  private def userNameFromString(s: String) = {
+    validate[UserName](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val userNameMeta: Meta[UserName] =
+    Meta[String].timap(userNameFromString)(_.value.value)
 
-  implicit val lotSizePut: Put[LotSize] = Put[Int].contramap(_.value.value)
-
-  implicit val unitPriceGet: Get[UnitPrice] =
-    Get[BigDecimal]
-      .map(s => validate[UnitPrice](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
-
-  implicit val unitPricePut: Put[UnitPrice] = Put[BigDecimal].contramap(_.value.value)
-
-  implicit val moneyGet: Get[Money] =
-    Get[BigDecimal]
-      .map(s => USD(s))
-
-  implicit val moneyPut: Put[Money] = Put[BigDecimal].contramap(_.amount)
-
-  implicit val orderNoGet: Get[OrderNo] =
-    Get[String]
-      .map(s => validate[OrderNo](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
-
-  implicit val orderNoPut: Put[OrderNo] = Put[String].contramap(_.value.value)
-
-  implicit val quantityGet: Get[Quantity] =
-    Get[BigDecimal]
-      .map(s => validate[Quantity](s))
-      .map(_.fold(errs => throw new Exception(errs.toString), identity))
-
-  implicit val quantityPut: Put[Quantity] = Put[BigDecimal].contramap(_.value.value)
-
-  implicit val buySellGet: Get[BuySell] =
-    Get[String]
-      .map(s => BuySell.withName(s))
-
-  implicit val buySellPut: Put[BuySell] = Put[String].contramap(_.entryName)
+  private def passwordFromString(s: String) = {
+    validate[EncryptedPassword](s).fold(errs => throw new Exception(errs.toString), identity)
+  }
+  implicit val passwordMeta: Meta[EncryptedPassword] =
+    Meta[String].timap(passwordFromString)(_.value.value)
 }
