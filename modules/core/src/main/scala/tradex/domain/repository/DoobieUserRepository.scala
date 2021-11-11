@@ -46,14 +46,6 @@ object DoobieUserRepository {
   }
 
   object SQL {
-    def upsert(user: User): Update0 =
-      sql"""
-        INSERT INTO users (id, name, password)
-        VALUES (${user.userId}, ${user.userName}, ${user.password})
-        ON CONFLICT(name) DO UPDATE SET
-          password = EXCLUDED.password
-       """.update
-
     def insert(userName: UserName, password: EncryptedPassword): ConnectionIO[User] =
       sql"""
         INSERT INTO users (name, password)
