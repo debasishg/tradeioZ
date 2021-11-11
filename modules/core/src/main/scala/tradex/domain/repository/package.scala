@@ -7,11 +7,13 @@ import java.time.LocalDate
 import model.account._
 import model.instrument._
 import model.order._
+import model.user._
 
 package object repository {
   type AccountRepository    = Has[AccountRepository.Service]
   type InstrumentRepository = Has[InstrumentRepository.Service]
   type OrderRepository      = Has[OrderRepository.Service]
+  type UserRepository       = Has[UserRepository.Service]
 
   /** AccountRepository */
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =
@@ -57,4 +59,11 @@ package object repository {
 
   def store(orders: NonEmptyList[Order]): RIO[OrderRepository, Unit] =
     ZIO.accessM(_.get.store(orders))
+
+  /** UserRepository */
+  def queryByUserName(username: UserName): RIO[UserRepository, Option[User]] =
+    ZIO.accessM(_.get.queryByUserName(username))
+
+  def store(username: UserName, password: EncryptedPassword): RIO[UserRepository, UserId] =
+    ZIO.accessM(_.get.store(username, password))
 }
