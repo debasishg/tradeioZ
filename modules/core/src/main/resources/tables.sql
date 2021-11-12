@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS lineItems (
 );
 
 CREATE TABLE IF NOT EXISTS executions (
-    executionRefNo uuid NOT NULL PRIMARY KEY,
+    executionRefNo uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     accountNo varchar NOT NULL references accounts(no),
     orderNo varchar NOT NULL references orders(no),
     isinCode varchar NOT NULL references instruments(isinCode),

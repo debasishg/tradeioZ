@@ -9,6 +9,7 @@ import model.instrument._
 import model.order._
 import model.user._
 import model.balance._
+import model.execution._
 
 package object repository {
   type AccountRepository    = Has[AccountRepository.Service]
@@ -16,6 +17,7 @@ package object repository {
   type OrderRepository      = Has[OrderRepository.Service]
   type UserRepository       = Has[UserRepository.Service]
   type BalanceRepository    = Has[BalanceRepository.Service]
+  type ExecutionRepository  = Has[ExecutionRepository.Service]
 
   /** AccountRepository */
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =
@@ -81,4 +83,10 @@ package object repository {
 
   def allBalances: RIO[BalanceRepository, List[Balance]] =
     ZIO.accessM(_.get.allBalances)
+
+  def store(exe: Execution): RIO[ExecutionRepository, Execution] =
+    ZIO.accessM(_.get.store(exe))
+
+  def storeMany(executions: NonEmptyList[Execution]): RIO[ExecutionRepository, Unit] =
+    ZIO.accessM(_.get.storeMany(executions))
 }

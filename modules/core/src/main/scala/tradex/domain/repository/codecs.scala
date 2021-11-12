@@ -11,6 +11,8 @@ import model.account._
 import model.instrument._
 import model.order._
 import model.user._
+import model.execution._
+import model.market._
 
 object codecs {
   private def accountNoFromString(s: String) = {
@@ -89,4 +91,11 @@ object codecs {
   }
   implicit val passwordMeta: Meta[EncryptedPassword] =
     Meta[String].timap(passwordFromString)(_.value.value)
+
+  implicit val executionReferenceNoMeta: Meta[ExecutionReferenceNo] =
+    Meta[UUID].timap(u => ExecutionReferenceNo(u))(_.value)
+
+  implicit val marketMeta: Meta[Market] =
+    Meta[String].timap(s => Market.withName(s))(_.entryName)
+
 }
