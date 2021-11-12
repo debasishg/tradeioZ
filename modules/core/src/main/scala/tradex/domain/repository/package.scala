@@ -8,12 +8,14 @@ import model.account._
 import model.instrument._
 import model.order._
 import model.user._
+import model.balance._
 
 package object repository {
   type AccountRepository    = Has[AccountRepository.Service]
   type InstrumentRepository = Has[InstrumentRepository.Service]
   type OrderRepository      = Has[OrderRepository.Service]
   type UserRepository       = Has[UserRepository.Service]
+  type BalanceRepository    = Has[BalanceRepository.Service]
 
   /** AccountRepository */
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =
@@ -66,4 +68,17 @@ package object repository {
 
   def store(username: UserName, password: EncryptedPassword): RIO[UserRepository, UserId] =
     ZIO.accessM(_.get.store(username, password))
+
+  /** BalanceRepository */
+  def queryBalanceByAccountNo(no: AccountNo): RIO[BalanceRepository, Option[Balance]] =
+    ZIO.accessM(_.get.queryBalanceByAccountNo(no))
+
+  def store(b: Balance): RIO[BalanceRepository, Balance] =
+    ZIO.accessM(_.get.store(b))
+
+  def queryBalanceAsOf(date: LocalDate): RIO[BalanceRepository, List[Balance]] =
+    ZIO.accessM(_.get.queryBalanceAsOf(date))
+
+  def allBalances: RIO[BalanceRepository, List[Balance]] =
+    ZIO.accessM(_.get.allBalances)
 }
