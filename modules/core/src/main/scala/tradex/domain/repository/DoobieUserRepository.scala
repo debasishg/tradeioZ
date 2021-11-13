@@ -51,7 +51,7 @@ object DoobieUserRepository {
         INSERT INTO users (name, password)
         VALUES ($userName, $password)
       """.update
-        .withUniqueGeneratedKeys("id", "name", "password")
+        .withUniqueGeneratedKeys("id")
 
     // when writing we have a valid `User` - hence we can use
     // Scala data types

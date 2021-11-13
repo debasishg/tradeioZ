@@ -130,7 +130,7 @@ object DoobieOrderRepository {
 
     // when writing we have a valid `LineItem` - hence we can use
     // Scala data types
-    implicit def lineItemWrite: Write[LineItem] =
+    implicit val lineItemWrite: Write[LineItem] =
       Write[
         (
             OrderNo,

@@ -88,7 +88,6 @@ object trade {
   final case class Trade private (
       accountNo: AccountNo,
       isin: ISINCode,
-      refNo: TradeReferenceNo,
       market: Market,
       buySell: BuySell,
       unitPrice: UnitPrice,
@@ -116,24 +115,20 @@ object trade {
         tradeDate: LocalDateTime = today,
         valueDate: Option[LocalDateTime] = None,
         userId: Option[UserId] = None
-    ): URIO[Random, Validation[String, Trade]] = {
-      zio.random.nextUUID
-        .map { refNo =>
-          validateTradeValueDate(tradeDate, valueDate).map { case (td, maybeVd) =>
-            Trade(
-              accountNo,
-              isin,
-              TradeReferenceNo(refNo),
-              market,
-              buySell,
-              unitPrice,
-              quantity,
-              td,
-              maybeVd,
-              userId
-            )
-          }
-        }
+    ): Validation[String, Trade] = {
+      validateTradeValueDate(tradeDate, valueDate).map { case (td, maybeVd) =>
+        Trade(
+          accountNo,
+          isin,
+          market,
+          buySell,
+          unitPrice,
+          quantity,
+          td,
+          maybeVd,
+          userId
+        )
+      }
     }
 
     private def validateTradeValueDate(

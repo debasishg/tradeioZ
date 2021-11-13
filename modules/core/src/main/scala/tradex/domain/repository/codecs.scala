@@ -13,6 +13,7 @@ import model.order._
 import model.user._
 import model.execution._
 import model.market._
+import model.trade._
 
 object codecs {
   private def accountNoFromString(s: String) = {
@@ -98,4 +99,9 @@ object codecs {
   implicit val marketMeta: Meta[Market] =
     Meta[String].timap(s => Market.withName(s))(_.entryName)
 
+  implicit val tradeReferenceNoMeta: Meta[TradeReferenceNo] =
+    Meta[UUID].timap(u => TradeReferenceNo(u))(_.value)
+
+  implicit val taxFeeIdMeta: Meta[TaxFeeId] =
+    Meta[String].timap(s => TaxFeeId.withName(s))(_.entryName)
 }

@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS taxFees (
 );
 
 CREATE TABLE IF NOT EXISTS trades (
-    tradeRefNo uuid NOT NULL PRIMARY KEY,
+    tradeRefNo uuid NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     accountNo varchar NOT NULL references accounts(no),
     isinCode varchar NOT NULL references instruments(isinCode),
     market varchar NOT NULL,
