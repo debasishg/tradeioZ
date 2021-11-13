@@ -1,10 +1,11 @@
 package tradex.domain
-package repository
+package repository.doobie
 
 import java.time.LocalDateTime
 import zio._
 import zio.prelude.NonEmptyList
 import zio.interop.catz._
+import zio.blocking.Blocking
 
 import doobie._
 import doobie.implicits._
@@ -16,6 +17,8 @@ import model.instrument._
 import model.order._
 import model.market._
 import codecs._
+import repository.ExecutionRepository
+import config._
 
 final class DoobieExecutionRepository(xa: Transactor[Task]) {
   import DoobieExecutionRepository.SQL
@@ -40,7 +43,16 @@ final class DoobieExecutionRepository(xa: Transactor[Task]) {
   }
 }
 
-object DoobieExecutionRepository {
+object DoobieExecutionRepository extends CatzInterop {
+  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, ExecutionRepository] = {
+
+    ZLayer.fromManaged {
+      for {
+        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+        transactor <- mkTransactor(cfg)
+      } yield new DoobieExecutionRepository(transactor).executionRepository
+    }
+  }
   object SQL {
 
     // when writing we have a valid `Execution` - hence we can use

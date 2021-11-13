@@ -1,5 +1,5 @@
 package tradex.domain
-package repository
+package repository.doobie
 
 import java.time.{ LocalDate, LocalDateTime }
 import zio._
@@ -17,6 +17,7 @@ import codecs._
 import model.account._
 import model.order._
 import model.instrument._
+import repository.OrderRepository
 
 final class DoobieOrderRepository(xa: Transactor[Task]) {
   import DoobieOrderRepository._
@@ -73,9 +74,8 @@ final class DoobieOrderRepository(xa: Transactor[Task]) {
   }
 }
 
-object DoobieOrderRepository {
+object DoobieOrderRepository extends CatzInterop {
   def layer: ZLayer[DbConfigProvider with Blocking, Throwable, OrderRepository] = {
-    import CatzInterop._
 
     ZLayer.fromManaged {
       for {

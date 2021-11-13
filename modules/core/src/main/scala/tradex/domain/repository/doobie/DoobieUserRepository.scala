@@ -1,5 +1,5 @@
 package tradex.domain
-package repository
+package repository.doobie
 
 import java.util.UUID
 import zio._
@@ -12,6 +12,7 @@ import doobie.postgres.implicits._
 import model.user._
 import codecs._
 import config._
+import repository.UserRepository
 
 final class DoobieUserRepository(xa: Transactor[Task]) {
   import DoobieUserRepository._
@@ -33,9 +34,8 @@ final class DoobieUserRepository(xa: Transactor[Task]) {
   }
 }
 
-object DoobieUserRepository {
+object DoobieUserRepository extends CatzInterop {
   def layer: ZLayer[DbConfigProvider with Blocking, Throwable, UserRepository] = {
-    import CatzInterop._
 
     ZLayer.fromManaged {
       for {

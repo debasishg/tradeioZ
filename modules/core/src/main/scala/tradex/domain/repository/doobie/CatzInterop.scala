@@ -1,5 +1,5 @@
 package tradex.domain
-package repository
+package repository.doobie
 
 import zio._
 import zio.blocking.Blocking
@@ -8,7 +8,7 @@ import doobie.hikari._
 
 import config._
 
-object CatzInterop {
+trait CatzInterop {
   import zio.interop.catz.implicits._
 
   implicit val zioRuntime: zio.Runtime[zio.ZEnv] = zio.Runtime.default

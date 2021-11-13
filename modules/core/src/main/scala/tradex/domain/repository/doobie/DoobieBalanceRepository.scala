@@ -1,5 +1,5 @@
 package tradex.domain
-package repository
+package repository.doobie
 
 import java.time.{ LocalDate, LocalDateTime }
 import squants.market._
@@ -14,6 +14,7 @@ import model.account.AccountNo
 import model.balance._
 import codecs._
 import config._
+import repository.BalanceRepository
 
 final class DoobieBalanceRepository(xa: Transactor[Task]) {
   import DoobieBalanceRepository.SQL
@@ -49,9 +50,8 @@ final class DoobieBalanceRepository(xa: Transactor[Task]) {
   }
 }
 
-object DoobieBalanceRepository {
+object DoobieBalanceRepository extends CatzInterop {
   def layer: ZLayer[DbConfigProvider with Blocking, Throwable, BalanceRepository] = {
-    import CatzInterop._
 
     ZLayer.fromManaged {
       for {

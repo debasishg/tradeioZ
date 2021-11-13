@@ -4,8 +4,6 @@ package model
 import java.time.LocalDateTime
 import java.util.UUID
 
-import zio._
-import zio.random._
 import zio.prelude._
 
 import enumeratum._
