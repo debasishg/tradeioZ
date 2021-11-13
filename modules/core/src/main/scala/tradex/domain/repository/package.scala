@@ -10,6 +10,8 @@ import model.order._
 import model.user._
 import model.balance._
 import model.execution._
+import model.trade._
+import model.market._
 
 package object repository {
   type AccountRepository    = Has[AccountRepository.Service]
@@ -18,6 +20,7 @@ package object repository {
   type UserRepository       = Has[UserRepository.Service]
   type BalanceRepository    = Has[BalanceRepository.Service]
   type ExecutionRepository  = Has[ExecutionRepository.Service]
+  type TradeRepository      = Has[TradeRepository.Service]
 
   /** AccountRepository */
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =
@@ -84,9 +87,26 @@ package object repository {
   def allBalances: RIO[BalanceRepository, List[Balance]] =
     ZIO.accessM(_.get.allBalances)
 
+  /** ExecutionRepository */
   def store(exe: Execution): RIO[ExecutionRepository, Execution] =
     ZIO.accessM(_.get.store(exe))
 
   def storeMany(executions: NonEmptyList[Execution]): RIO[ExecutionRepository, Unit] =
     ZIO.accessM(_.get.storeMany(executions))
+
+  /** TradeRepository */
+  def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): RIO[TradeRepository, List[Trade]] =
+    ZIO.accessM(_.get.queryTradeByAccountNo(accountNo, date))
+
+  def queryTradeByMarket(market: Market): RIO[TradeRepository, List[Trade]] =
+    ZIO.accessM(_.get.queryTradeByMarket(market))
+
+  def allTrades: RIO[TradeRepository, List[Trade]] =
+    ZIO.accessM(_.get.allTrades)
+
+  def store(trd: Trade): RIO[TradeRepository, Trade] =
+    ZIO.accessM(_.get.store(trd))
+
+  def storeNTrades(trades: NonEmptyList[Trade]): RIO[TradeRepository, Unit] =
+    ZIO.accessM(_.get.storeNTrades(trades))
 }

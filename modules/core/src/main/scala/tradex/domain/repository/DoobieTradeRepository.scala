@@ -4,7 +4,8 @@ package repository
 import java.util.UUID
 import java.time.{ LocalDate, LocalDateTime }
 import zio._
-import zio.prelude.NonEmptyList
+import zio.prelude._
+import zio.interop.catz._
 import doobie._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
@@ -21,17 +22,63 @@ import model.market._
 import codecs._
 
 final class DoobieTradeRepository(xa: Transactor[Task]) {
+  import DoobieTradeRepository._
+
+  implicit val TradeAssociative: Associative[Trade] =
+    new Associative[Trade] {
+      def combine(left: => Trade, right: => Trade): Trade =
+        left.copy(taxFees = left.taxFees ++ right.taxFees)
+    }
+
   val tradeRepository = new TradeRepository.Service {
 
-    def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): Task[List[Trade]] = ???
+    def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): Task[List[Trade]] =
+      SQL
+        .getTradesByAccountNo(accountNo.value.value, date)
+        .to[List]
+        .map(_.groupBy(_._1))
+        .map {
+          _.map { case (refNo, lis) =>
+            lis.map(_._2).reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = Some(refNo))
+          }.toList
+        }
+        .transact(xa)
+        .orDie
 
-    def queryTradeByMarket(market: Market): Task[List[Trade]] = ???
+    def queryTradeByMarket(market: Market): Task[List[Trade]] =
+      SQL
+        .getTradesByMarket(market.entryName)
+        .to[List]
+        .map(_.groupBy(_._1))
+        .map {
+          _.map { case (refNo, lis) =>
+            lis.map(_._2).reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = Some(refNo))
+          }.toList
+        }
+        .transact(xa)
+        .orDie
 
-    def allTrades: Task[List[Trade]] = ???
+    def allTrades: Task[List[Trade]] =
+      SQL.getAllTrades
+        .to[List]
+        .map(_.groupBy(_._1))
+        .map {
+          _.map { case (refNo, lis) =>
+            lis.map(_._2).reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = Some(refNo))
+          }.toList
+        }
+        .transact(xa)
+        .orDie
 
-    def store(trd: Trade): Task[Trade] = ???
+    def store(trd: Trade): Task[Trade] =
+      SQL
+        .insertTrade(trd)
+        .transact(xa)
+        .map(_ => trd)
+        .orDie
 
-    def storeNTrades(trades: NonEmptyList[Trade]): Task[Unit] = ???
+    def storeNTrades(trades: NonEmptyList[Trade]): Task[Unit] =
+      trades.forEach(trade => store(trade)).map(_ => ())
   }
 }
 
@@ -140,5 +187,32 @@ object DoobieTradeRepository {
           insertTaxFees(TradeReferenceNo(refNo), trade.taxFees)
         }
     }
+
+    def getTradesByAccountNo(ano: String, date: LocalDate) =
+      sql"""
+        SELECT t.tradeRefNo, t.accountNo, t.isinCode, t.market, t.buySellFlag, t.unitPrice, t.quantity,
+               t.tradeDate, t.valueDate, t.netAmount, t.userId, f.taxFeeId, f.amount
+        FROM   trades t, tradeTaxFees f
+        WHERE  t.tradeRefNo = f.tradeRefNo
+        AND    t.accountNo = $ano
+        AND    DATE(t.tradeDate) = $date
+      """.query[(TradeReferenceNo, Trade)]
+
+    def getTradesByMarket(market: String) =
+      sql"""
+        SELECT t.tradeRefNo, t.accountNo, t.isinCode, t.market, t.buySellFlag, t.unitPrice, t.quantity,
+               t.tradeDate, t.valueDate, t.netAmount, t.userId, f.taxFeeId, f.amount
+        FROM   trades t, tradeTaxFees f
+        WHERE  t.tradeRefNo = f.tradeRefNo
+        AND    t.market = $market
+      """.query[(TradeReferenceNo, Trade)]
+
+    def getAllTrades =
+      sql"""
+        SELECT t.tradeRefNo, t.accountNo, t.isinCode, t.market, t.buySellFlag, t.unitPrice, t.quantity,
+               t.tradeDate, t.valueDate, t.netAmount, t.userId, f.taxFeeId, f.amount
+        FROM   trades t, tradeTaxFees f
+        WHERE  t.tradeRefNo = f.tradeRefNo
+      """.query[(TradeReferenceNo, Trade)]
   }
 }

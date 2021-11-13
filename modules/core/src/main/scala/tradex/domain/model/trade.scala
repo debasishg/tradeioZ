@@ -96,7 +96,8 @@ object trade {
       valueDate: Option[LocalDateTime] = None,
       userId: Option[UserId] = None,
       taxFees: List[TradeTaxFee] = List.empty,
-      netAmount: Option[Money] = None
+      netAmount: Option[Money] = None,
+      tradeRefNo: Option[TradeReferenceNo] = None
   )
 
   private[domain] final case class TradeTaxFee(
