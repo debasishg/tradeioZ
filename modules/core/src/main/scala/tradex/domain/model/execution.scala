@@ -2,8 +2,6 @@ package tradex.domain
 package model
 
 import java.util.UUID
-import zio._
-import zio.random._
 import zio.prelude._
 
 import account._
@@ -19,7 +17,6 @@ object execution {
 
   // primary domain entity for execution from exchange
   final case class Execution private (
-      executionRefNo: ExecutionReferenceNo,
       accountNo: AccountNo,
       orderNo: OrderNo,
       isin: ISINCode,
@@ -28,7 +25,8 @@ object execution {
       unitPrice: UnitPrice,
       quantity: Quantity,
       dateOfExecution: LocalDateTime,
-      exchangeExecutionRefNo: Option[String] = None
+      exchangeExecutionRefNo: Option[String] = None,
+      executionRefNo: Option[ExecutionReferenceNo] = None
   )
 
   // as per layout obtained from exchange
@@ -54,22 +52,18 @@ object execution {
         unitPrice: UnitPrice,
         quantity: Quantity,
         dateOfExecution: LocalDateTime
-    ): URIO[Random, Execution] = {
-      zio.random.nextUUID
-        .map { refNo =>
-          Execution(
-            ExecutionReferenceNo(refNo),
-            accountNo,
-            orderNo,
-            isin,
-            market,
-            buySell,
-            unitPrice,
-            quantity,
-            dateOfExecution,
-            None
-          )
-        }
+    ): Execution = {
+      Execution(
+        accountNo,
+        orderNo,
+        isin,
+        market,
+        buySell,
+        unitPrice,
+        quantity,
+        dateOfExecution,
+        None
+      )
     }
 
     def execution(
@@ -81,7 +75,7 @@ object execution {
         unitPrice: BigDecimal,
         quantity: BigDecimal,
         dateOfExecution: LocalDateTime
-    ): Validation[String, URIO[Random, Execution]] = {
+    ): Validation[String, Execution] = {
       Validation
         .validateWith(
           Account.validateAccountNo(accountNo),
@@ -92,27 +86,23 @@ object execution {
           Order.validateUnitPrice(unitPrice),
           Order.validateQuantity(quantity)
         ) { (ano, ono, isin, m, bs, up, qty) =>
-          zio.random.nextUUID
-            .map { id =>
-              Execution(
-                ExecutionReferenceNo(id),
-                ano,
-                ono,
-                isin,
-                m,
-                BuySell.withName(bs),
-                up,
-                qty,
-                dateOfExecution
-              )
-            }
+          Execution(
+            ano,
+            ono,
+            isin,
+            m,
+            BuySell.withName(bs),
+            up,
+            qty,
+            dateOfExecution
+          )
         }
     }
 
     // smart constructor from data received from exchange
     private[domain] def createExecution(
         eex: ExchangeExecution
-    ): Validation[String, URIO[Random, Execution]] = {
+    ): Validation[String, Execution] = {
       Validation.validateWith(
         Account.validateAccountNo(eex.accountNo),
         Instrument.validateISINCode(eex.isin),
@@ -121,22 +111,18 @@ object execution {
         Order.validateQuantity(eex.quantity),
         Order.validateOrderNo(eex.orderNo)
       ) { (ano, ins, bs, up, q, ono) =>
-        zio.random.nextUUID
-          .map { id =>
-            Execution(
-              ExecutionReferenceNo(id),
-              ano,
-              ono,
-              ins,
-              Market.withName(eex.market),
-              BuySell.withName(bs),
-              up,
-              q,
-              eex.dateOfExecution,
-              if (eex.executionRefNo.isEmpty()) None
-              else Some(eex.executionRefNo)
-            )
-          }
+        Execution(
+          ano,
+          ono,
+          ins,
+          Market.withName(eex.market),
+          BuySell.withName(bs),
+          up,
+          q,
+          eex.dateOfExecution,
+          if (eex.executionRefNo.isEmpty()) None
+          else Some(eex.executionRefNo)
+        )
       }
     }
   }

@@ -60,7 +60,6 @@ object DoobieExecutionRepository extends CatzInterop {
     implicit val executionWrite: Write[Execution] =
       Write[
         (
-            ExecutionReferenceNo,
             AccountNo,
             OrderNo,
             ISINCode,
@@ -73,7 +72,6 @@ object DoobieExecutionRepository extends CatzInterop {
         )
       ].contramap(execution =>
         (
-          execution.executionRefNo,
           execution.accountNo,
           execution.orderNo,
           execution.isin,
