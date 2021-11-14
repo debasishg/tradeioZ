@@ -6,6 +6,7 @@ import zio._
 import model.account._
 
 object AccountRepository {
+  // Service definition
   trait Service {
 
     /** query by account number */

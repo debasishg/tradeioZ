@@ -14,6 +14,7 @@ import model.trade._
 import model.market._
 
 package object repository {
+  // Module definitions
   type AccountRepository    = Has[AccountRepository.Service]
   type InstrumentRepository = Has[InstrumentRepository.Service]
   type OrderRepository      = Has[OrderRepository.Service]
@@ -21,6 +22,8 @@ package object repository {
   type BalanceRepository    = Has[BalanceRepository.Service]
   type ExecutionRepository  = Has[ExecutionRepository.Service]
   type TradeRepository      = Has[TradeRepository.Service]
+
+  // Accessor Methods for all modules
 
   /** AccountRepository */
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =

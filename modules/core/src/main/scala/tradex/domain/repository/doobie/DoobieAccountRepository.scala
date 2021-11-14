@@ -74,6 +74,8 @@ final class DoobieAccountRepository(xa: Transactor[Task]) {
 }
 
 object DoobieAccountRepository extends CatzInterop {
+  // Module Implementation
+  // Needs `DbConfigProvider` and `Blocking` services and gives back `AccountRepository` module
   def layer: ZLayer[DbConfigProvider with Blocking, Throwable, AccountRepository] = {
 
     ZLayer.fromManaged {
