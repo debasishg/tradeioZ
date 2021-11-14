@@ -39,10 +39,10 @@ final class DoobieTradeRepository(xa: Transactor[Task]) {
       SQL
         .getTradesByAccountNo(accountNo.value.value, date)
         .to[List]
-        .map(_.groupBy(_._1))
+        .map(_.groupBy(_.tradeRefNo))
         .map {
           _.map { case (refNo, lis) =>
-            lis.map(_._2).reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = Some(refNo))
+            lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
           }.toList
         }
         .transact(xa)
@@ -52,10 +52,10 @@ final class DoobieTradeRepository(xa: Transactor[Task]) {
       SQL
         .getTradesByMarket(market.entryName)
         .to[List]
-        .map(_.groupBy(_._1))
+        .map(_.groupBy(_.tradeRefNo))
         .map {
           _.map { case (refNo, lis) =>
-            lis.map(_._2).reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = Some(refNo))
+            lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
           }.toList
         }
         .transact(xa)
@@ -64,10 +64,10 @@ final class DoobieTradeRepository(xa: Transactor[Task]) {
     def allTrades: Task[List[Trade]] =
       SQL.getAllTrades
         .to[List]
-        .map(_.groupBy(_._1))
+        .map(_.groupBy(_.tradeRefNo))
         .map {
           _.map { case (refNo, lis) =>
-            lis.map(_._2).reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = Some(refNo))
+            lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
           }.toList
         }
         .transact(xa)
@@ -133,7 +133,7 @@ object DoobieTradeRepository extends CatzInterop {
         (TaxFeeId, Money)
       ].contramap(tradeTaxFee => (tradeTaxFee.taxFeeId, tradeTaxFee.amount))
 
-    implicit val tradeTaxFeeRead: Read[(TradeReferenceNo, Trade)] =
+    implicit val tradeTaxFeeRead: Read[Trade] =
       Read[
         (
             TradeReferenceNo,
@@ -151,7 +151,7 @@ object DoobieTradeRepository extends CatzInterop {
             Money
         )
       ].map { case (refNo, ano, isin, mkt, bs, up, qty, td, vd, netAmt, uid, tfid, amt) =>
-        (refNo, Trade(ano, isin, mkt, bs, up, qty, td, vd, uid, List(TradeTaxFee(tfid, amt)), netAmt))
+        Trade(ano, isin, mkt, bs, up, qty, td, vd, uid, List(TradeTaxFee(tfid, amt)), netAmt, Some(refNo))
       }
 
     def insertTaxFees(refNo: TradeReferenceNo, taxFees: List[TradeTaxFee]): ConnectionIO[Int] = {
@@ -208,7 +208,7 @@ object DoobieTradeRepository extends CatzInterop {
         WHERE  t.tradeRefNo = f.tradeRefNo
         AND    t.accountNo = $ano
         AND    DATE(t.tradeDate) = $date
-      """.query[(TradeReferenceNo, Trade)]
+      """.query[Trade]
 
     def getTradesByMarket(market: String) =
       sql"""
@@ -217,7 +217,7 @@ object DoobieTradeRepository extends CatzInterop {
         FROM   trades t, tradeTaxFees f
         WHERE  t.tradeRefNo = f.tradeRefNo
         AND    t.market = $market
-      """.query[(TradeReferenceNo, Trade)]
+      """.query[Trade]
 
     def getAllTrades =
       sql"""
@@ -225,6 +225,6 @@ object DoobieTradeRepository extends CatzInterop {
                t.tradeDate, t.valueDate, t.netAmount, t.userId, f.taxFeeId, f.amount
         FROM   trades t, tradeTaxFees f
         WHERE  t.tradeRefNo = f.tradeRefNo
-      """.query[(TradeReferenceNo, Trade)]
+      """.query[Trade]
   }
 }
