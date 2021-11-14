@@ -1,7 +1,6 @@
 package tradex.domain
 package services.trading
 
-import scala.util.control.NoStackTrace
 import zio._
 import zio.prelude._
 import java.time.LocalDate
@@ -13,6 +12,7 @@ import model.execution._
 import model.user._
 import repository._
 import NewtypeRefinedOps._
+import scala.util.control.NoStackTrace
 
 object TradingService {
   trait Service {
@@ -39,15 +39,6 @@ object TradingService {
         forAccountNo: AccountNo,
         forDate: Option[LocalDate] = None
     ): IO[TradingError, List[Trade]]
-
-    /** Create a list of `Order` from client orders read from a stream as a csv file.
-      *
-      * @param csvOrder
-      *   client order in csv format
-      * @return
-      *   a List of `Order` under the effect `F`
-      */
-    def orders(csvOrder: String): Task[NonEmptyList[Order]]
 
     /** Create a list of `Order` from client orders that come from the front office.
       *
@@ -123,8 +114,6 @@ object TradingService {
           )
         )
       }
-
-      def orders(csvOrder: String): Task[NonEmptyList[Order]] = ???
 
       def orders(
           frontOfficeOrders: NonEmptyList[FrontOfficeOrder]
