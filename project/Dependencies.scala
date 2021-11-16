@@ -86,7 +86,7 @@ object Dependencies {
 
   val tradeioDependencies: Seq[ModuleID] =
     commonDependencies ++ Seq(kindProjector, betterMonadicFor, semanticDB) ++
-      Seq(Misc.newtype, Misc.squants, Misc.pureconfig) ++ Seq(logback) ++
+      Seq(Misc.newtype, Misc.squants, Misc.pureconfig) ++ Seq(logback) ++ Seq(flywayDb) ++
       Seq(Derevo.derevoCore, Derevo.derevoCiris, Derevo.derevoCirceMagnolia) ++
       Seq(Refined.refinedCore, Refined.refinedCats, Refined.refinedShapeless) ++
       Seq(Ciris.cirisCore, Ciris.cirisEnum, Ciris.cirisRefined, Ciris.cirisCirce, Ciris.cirisSquants) ++
