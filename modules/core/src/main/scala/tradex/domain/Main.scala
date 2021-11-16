@@ -11,10 +11,13 @@ import model.account._
 object Main extends zio.App {
   def run(args: List[String]): zio.URIO[zio.ZEnv, zio.ExitCode] = {
     val program = for {
-      _ <- makeProgram
-    } yield ()
+      // dbconf <- ZIO.access[config.Config](_.dbConfig)
+      // _      <- FlywayMigration.migrate(dbconf)
+      accounts <- makeProgram
+    } yield accounts
 
     program
+      .map(accs => println(accs.size.toString))
       .tapError(err => putStrLn(s"Execution failed with: ${err.getMessage}"))
       .exitCode
   }
@@ -24,4 +27,10 @@ object Main extends zio.App {
   } yield accounts
 
   val makeProgram = module.provideLayer(Application.prod.appLayer)
+  /*
+  val dbconf      = ZIO.access[config.Config](_.dbConfig)
+  for {
+    d <- dbconf
+  } yield d
+   */
 }

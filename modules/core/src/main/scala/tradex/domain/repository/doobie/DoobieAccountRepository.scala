@@ -118,9 +118,9 @@ object DoobieAccountRepository extends CatzInterop {
         (
             AccountNo,
             AccountName,
+            AccountType,
             LocalDateTime,
             Option[LocalDateTime],
-            AccountType,
             Currency,
             Option[Currency],
             Option[Currency]
@@ -129,9 +129,9 @@ object DoobieAccountRepository extends CatzInterop {
         (
           account.no,
           account.name,
+          account.accountType,
           account.dateOfOpen,
           account.dateOfClose,
-          account.accountType,
           account.baseCurrency,
           account.tradingCurrency,
           account.settlementCurrency
@@ -165,14 +165,14 @@ object DoobieAccountRepository extends CatzInterop {
         (
             String,
             String,
+            String,
             LocalDateTime,
             Option[LocalDateTime],
-            String,
             String,
             Option[String],
             Option[String]
         )
-      ].map { case (no, nm, openDt, closeDt, acType, bc, tc, sc) =>
+      ].map { case (no, nm, acType, openDt, closeDt, bc, tc, sc) =>
         AccountType.withName(acType) match {
           case AccountType.Trading =>
             Account
@@ -220,7 +220,7 @@ object DoobieAccountRepository extends CatzInterop {
       """.query[Account]
 
     def getByDateOfOpen(openDate: LocalDate): Query0[Account] = sql"""
-      select * from accounts where dateOfOpen = $openDate
+      select * from accounts where DATE(dateOfOpen) = $openDate
       """.query[Account]
 
     def getAllClosed: Query0[Account] = sql"""
