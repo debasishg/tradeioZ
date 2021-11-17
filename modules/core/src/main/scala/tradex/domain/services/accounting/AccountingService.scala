@@ -7,7 +7,6 @@ import model.account._
 import model.trade._
 import model.balance._
 import java.time.LocalDate
-import scala.util.control.NoStackTrace
 import tradex.domain.repository.BalanceRepository
 
 object AccountingService {
@@ -17,7 +16,7 @@ object AccountingService {
     def getBalance(accountNo: AccountNo): IO[AccountingError, Option[Balance]]
     def getBalanceByDate(date: LocalDate): IO[AccountingError, List[Balance]]
   }
-  case class AccountingError(cause: String) extends NoStackTrace
+  case class AccountingError(cause: String) extends Throwable
 
   val live = ZLayer.fromService[BalanceRepository.Service, AccountingService.Service] {
     (br: BalanceRepository.Service) =>

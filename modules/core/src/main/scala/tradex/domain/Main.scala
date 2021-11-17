@@ -2,11 +2,16 @@ package tradex.domain
 
 import zio._
 import zio.console.putStrLn
+import zio.blocking.Blocking
+import zio.prelude.NonEmptyList
 
 import services._
 import services.trading.TradingService._
 import java.time._
 import model.account._
+import model.trade._
+import model.user._
+import model.balance._
 
 object Main extends zio.App {
   def run(args: List[String]): zio.URIO[zio.ZEnv, zio.ExitCode] = {
@@ -28,4 +33,25 @@ object Main extends zio.App {
   } yield accounts
 
   val makeProgram = module.provideLayer(Application.prod.appLayer)
+}
+
+object Program {
+  def generate(
+      frontOfficeInput: GenerateTradeFrontOfficeInput,
+      userId: UserId
+  ): ZIO[Blocking, Throwable, (NonEmptyList[Trade], NonEmptyList[Balance])] = {
+
+    val action = for {
+      orders <- orders(frontOfficeInput.frontOfficeOrders)
+      executions <- execute(
+        orders,
+        frontOfficeInput.market,
+        frontOfficeInput.brokerAccountNo
+      )
+      trades   <- allocate(executions, frontOfficeInput.clientAccountNos, userId)
+      balances <- postBalance(trades)
+    } yield (trades, balances)
+
+    action.provideLayer(Application.prod.appLayer)
+  }
 }

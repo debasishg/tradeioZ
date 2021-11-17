@@ -12,7 +12,6 @@ import model.execution._
 import model.user._
 import repository._
 import NewtypeRefinedOps._
-import scala.util.control.NoStackTrace
 
 object TradingService {
   trait Service {
@@ -84,7 +83,7 @@ object TradingService {
     ): IO[TradingError, NonEmptyList[Trade]]
   }
 
-  sealed trait TradingError extends NoStackTrace {
+  sealed trait TradingError extends Throwable {
     def cause: String
   }
   case class OrderingError(cause: String)        extends TradingError
