@@ -28,10 +28,4 @@ object Main extends zio.App {
   } yield accounts
 
   val makeProgram = module.provideLayer(Application.prod.appLayer)
-  /*
-  val dbconf      = ZIO.access[config.Config](_.dbConfig)
-  for {
-    d <- dbconf
-  } yield d
-   */
 }
