@@ -45,7 +45,15 @@ object config {
       ZLayer.fromService(_.appConfig)
   }
 
-  final case class AppConfig(
+  // accessor to get dbconfig out
+  def getDbConfig: ZIO[Has[Config], Throwable, DBConfig] =
+    ZIO.access(_.get.dbConfig)
+
+  // accessor to get appconfig out
+  def getAppConfig: ZIO[Has[Config], Throwable, AppConfig] =
+    ZIO.access(_.get.appConfig)
+
+  case class AppConfig(
       maxAccountNoLength: Int,
       minAccountNoLength: Int,
       zeroBalanceAllowed: Boolean
