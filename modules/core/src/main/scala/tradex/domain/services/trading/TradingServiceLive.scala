@@ -12,7 +12,6 @@ import model.execution._
 import model.user._
 import repository._
 import NewtypeRefinedOps._
-import tradex.domain.repository.doobie.CatzInterop
 import TradingServiceError._
 
 final case class TradingServiceLive(
