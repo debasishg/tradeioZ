@@ -71,7 +71,7 @@ final case class AccountRepositoryLive(xa: Transactor[Task]) extends AccountRepo
 }
 
 object AccountRepositoryLive extends CatzInterop {
-  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[AccountRepository]] = {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[AccountRepository]] = {
     (for {
       cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
       transactor <- mkTransactor(cfg)

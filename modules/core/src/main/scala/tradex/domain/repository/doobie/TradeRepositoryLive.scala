@@ -83,7 +83,7 @@ final case class TradeRepositoryLive(xa: Transactor[Task]) extends TradeReposito
 }
 
 object TradeRepositoryLive extends CatzInterop {
-  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[TradeRepository]] = {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[TradeRepository]] = {
     (for {
       cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
       transactor <- mkTransactor(cfg)

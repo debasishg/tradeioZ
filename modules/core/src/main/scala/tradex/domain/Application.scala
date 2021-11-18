@@ -1,10 +1,9 @@
 package tradex.domain
 
-import zio.ZLayer
+import zio._
 import zio.blocking.Blocking
 
 import config._
-import services._
 import services.trading._
 import services.accounting._
 import repository._
@@ -14,21 +13,21 @@ object Application {
 
   // define all layers of the architecture
   type InfraLayerEnv =
-    ConfigProvider with Blocking
+    Has[Config] with Has[Blocking.Service]
 
   type ConfigLayerEnv =
-    InfraLayerEnv with AppConfigProvider with DbConfigProvider
+    InfraLayerEnv with Has[AppConfig] with Has[DBConfig]
 
   type RepositoryLayerEnv =
     ConfigLayerEnv
-      with AccountRepository
-      with OrderRepository
-      with ExecutionRepository
-      with TradeRepository
-      with BalanceRepository
+      with Has[AccountRepository]
+      with Has[OrderRepository]
+      with Has[ExecutionRepository]
+      with Has[TradeRepository]
+      with Has[BalanceRepository]
 
   type ServiceLayerEnv =
-    RepositoryLayerEnv with TradingService with AccountingService
+    RepositoryLayerEnv with Has[TradingService] with Has[AccountingService]
 
   type AppEnv = ServiceLayerEnv
 
@@ -42,10 +41,10 @@ object Application {
       AppConfigProvider.fromConfig ++ DbConfigProvider.fromConfig ++ ZLayer.identity
 
     val repositoryLayer: ZLayer[ConfigLayerEnv, Throwable, RepositoryLayerEnv] =
-      DoobieAccountRepository.layer ++ DoobieOrderRepository.layer ++ DoobieExecutionRepository.layer ++ DoobieTradeRepository.layer ++ DoobieBalanceRepository.layer ++ ZLayer.identity
+      AccountRepositoryLive.layer ++ OrderRepositoryLive.layer ++ ExecutionRepositoryLive.layer ++ TradeRepositoryLive.layer ++ BalanceRepositoryLive.layer ++ ZLayer.identity
 
     val serviceLayer: ZLayer[RepositoryLayerEnv, Throwable, ServiceLayerEnv] =
-      TradingService.live ++ AccountingService.live ++ ZLayer.identity
+      TradingServiceLive.layer ++ AccountingServiceLive.layer ++ ZLayer.identity
 
     // final application layer for prod
     val appLayer: ZLayer[Blocking, Throwable, AppEnv] =

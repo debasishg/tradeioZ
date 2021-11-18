@@ -73,7 +73,7 @@ final case class OrderRepositoryLive(xa: Transactor[Task]) extends OrderReposito
 }
 
 object OrderRepositoryLive extends CatzInterop {
-  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[OrderRepository]] = {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[OrderRepository]] = {
     (for {
       cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
       transactor <- mkTransactor(cfg)

@@ -5,8 +5,11 @@ import zio.console.putStrLn
 import zio.blocking.Blocking
 import zio.prelude.NonEmptyList
 
-import services._
-import services.trading.TradingService._
+import services.trading.{ TradingService, TradingServiceError }
+import TradingService._
+import TradingServiceError._
+import services.accounting.AccountingService
+import AccountingService._
 import java.time._
 import model.account._
 import model.trade._
@@ -28,7 +31,7 @@ object Main extends zio.App {
       .exitCode
   }
 
-  val module: ZIO[TradingService, TradingError, List[Account]] = for {
+  val module: ZIO[Has[TradingService], TradingError, List[Account]] = for {
     accounts <- getAccountsOpenedOn(LocalDate.EPOCH)
   } yield accounts
 

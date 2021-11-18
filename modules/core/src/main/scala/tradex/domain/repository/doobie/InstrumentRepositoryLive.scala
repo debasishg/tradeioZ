@@ -43,7 +43,7 @@ final case class InstrumentRepositoryLive(xa: Transactor[Task]) extends Instrume
 }
 
 object InstrumentRepositoryLive extends CatzInterop {
-  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[InstrumentRepository]] = {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[InstrumentRepository]] = {
     (for {
       cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
       transactor <- mkTransactor(cfg)

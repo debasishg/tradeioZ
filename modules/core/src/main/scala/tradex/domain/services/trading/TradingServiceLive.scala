@@ -150,7 +150,7 @@ final case class TradingServiceLive(
       )
 }
 
-object TradingServiceLive extends CatzInterop {
+object TradingServiceLive {
 
   val layer: ZLayer[Has[AccountRepository] with Has[OrderRepository] with Has[ExecutionRepository] with Has[
     TradeRepository

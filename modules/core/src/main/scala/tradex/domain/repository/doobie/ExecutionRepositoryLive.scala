@@ -42,7 +42,7 @@ final case class ExecutionRepositoryLive(xa: Transactor[Task]) extends Execution
 }
 
 object ExecutionRepositoryLive extends CatzInterop {
-  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[ExecutionRepository]] = {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[ExecutionRepository]] = {
     (for {
       cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
       transactor <- mkTransactor(cfg)
