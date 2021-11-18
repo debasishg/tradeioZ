@@ -16,44 +16,38 @@ import config._
 import codecs._
 import repository.InstrumentRepository
 
-final class DoobieInstrumentRepository(xa: Transactor[Task]) {
-  import DoobieInstrumentRepository.SQL
+final case class InstrumentRepositoryLive(xa: Transactor[Task]) extends InstrumentRepository {
+  import InstrumentRepositoryLive.SQL
 
-  val instrumentRepository: InstrumentRepository.Service = new InstrumentRepository.Service {
+  def queryByISINCode(isin: ISINCode): Task[Option[Instrument]] =
+    SQL
+      .get(isin.value.value)
+      .option
+      .transact(xa)
+      .orDie
 
-    def queryByISINCode(isin: ISINCode): Task[Option[Instrument]] =
-      SQL
-        .get(isin.value.value)
-        .option
-        .transact(xa)
-        .orDie
+  def queryByInstrumentType(instrumentType: InstrumentType): Task[List[Instrument]] =
+    SQL
+      .getByType(instrumentType.entryName)
+      .to[List]
+      .transact(xa)
+      .orDie
 
-    def queryByInstrumentType(instrumentType: InstrumentType): Task[List[Instrument]] =
-      SQL
-        .getByType(instrumentType.entryName)
-        .to[List]
-        .transact(xa)
-        .orDie
-
-    def store(ins: Instrument): Task[Instrument] =
-      SQL
-        .upsert(ins)
-        .run
-        .transact(xa)
-        .map(_ => ins)
-        .orDie
-  }
+  def store(ins: Instrument): Task[Instrument] =
+    SQL
+      .upsert(ins)
+      .run
+      .transact(xa)
+      .map(_ => ins)
+      .orDie
 }
 
-object DoobieInstrumentRepository extends CatzInterop {
-  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, InstrumentRepository] = {
-
-    ZLayer.fromManaged {
-      for {
-        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
-        transactor <- mkTransactor(cfg)
-      } yield new DoobieInstrumentRepository(transactor).instrumentRepository
-    }
+object InstrumentRepositoryLive extends CatzInterop {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[InstrumentRepository]] = {
+    (for {
+      cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+      transactor <- mkTransactor(cfg)
+    } yield new InstrumentRepositoryLive(transactor)).toLayer
   }
 
   object SQL {

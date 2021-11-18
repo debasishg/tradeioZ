@@ -9,22 +9,37 @@ import model.account._
 import model.trade._
 import model.market._
 
+trait TradeRepository {
+
+  /** query by account number and trade date (compares using the date part only) */
+  def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): Task[List[Trade]]
+
+  /** query by market */
+  def queryTradeByMarket(market: Market): Task[List[Trade]]
+
+  /** query all trades */
+  def allTrades: Task[List[Trade]]
+
+  /** store */
+  def store(trd: Trade): Task[Trade]
+
+  /** store many trades */
+  def storeNTrades(trades: NonEmptyList[Trade]): Task[Unit]
+}
+
 object TradeRepository {
-  trait Service {
+  def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): RIO[Has[TradeRepository], List[Trade]] =
+    ZIO.serviceWith[TradeRepository](_.queryTradeByAccountNo(accountNo, date))
 
-    /** query by account number and trade date (compares using the date part only) */
-    def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): Task[List[Trade]]
+  def queryTradeByMarket(market: Market): RIO[Has[TradeRepository], List[Trade]] =
+    ZIO.serviceWith[TradeRepository](_.queryTradeByMarket(market))
 
-    /** query by market */
-    def queryTradeByMarket(market: Market): Task[List[Trade]]
+  def allTrades: RIO[Has[TradeRepository], List[Trade]] =
+    ZIO.serviceWith[TradeRepository](_.allTrades)
 
-    /** query all trades */
-    def allTrades: Task[List[Trade]]
+  def store(trd: Trade): RIO[Has[TradeRepository], Trade] =
+    ZIO.serviceWith[TradeRepository](_.store(trd))
 
-    /** store */
-    def store(trd: Trade): Task[Trade]
-
-    /** store many trades */
-    def storeNTrades(trades: NonEmptyList[Trade]): Task[Unit]
-  }
+  def storeNTrades(trades: NonEmptyList[Trade]): RIO[Has[TradeRepository], Unit] =
+    ZIO.serviceWith[TradeRepository](_.storeNTrades(trades))
 }

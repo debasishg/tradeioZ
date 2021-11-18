@@ -4,86 +4,78 @@ package repository.doobie
 import java.time.{ LocalDate, LocalDateTime }
 import squants.market._
 import zio._
-import zio.blocking.Blocking
 import zio.interop.catz._
+import zio.blocking.Blocking
 
 import doobie._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import doobie.postgres.implicits._
 
-import config._
 import model.account._
 import codecs._
 import repository.AccountRepository
+import config._
 
-final class DoobieAccountRepository(xa: Transactor[Task]) {
-  import DoobieAccountRepository.SQL
+final case class AccountRepositoryLive(xa: Transactor[Task]) extends AccountRepository {
+  import AccountRepositoryLive.SQL
 
-  val accountRepository: AccountRepository.Service = new AccountRepository.Service {
+  def all: Task[List[Account]] =
+    SQL.getAll
+      .to[List]
+      .transact(xa)
+      .orDie
 
-    def all: Task[List[Account]] =
-      SQL.getAll
-        .to[List]
-        .transact(xa)
-        .orDie
+  def queryByAccountNo(no: AccountNo): Task[Option[Account]] =
+    SQL
+      .get(no.value.value)
+      .option
+      .transact(xa)
+      .orDie
 
-    def queryByAccountNo(no: AccountNo): Task[Option[Account]] =
-      SQL
-        .get(no.value.value)
-        .option
-        .transact(xa)
-        .orDie
+  def store(a: Account): Task[Account] =
+    SQL
+      .upsert(a)
+      .run
+      .transact(xa)
+      .map(_ => a)
+      .orDie
 
-    def store(a: Account): Task[Account] =
-      SQL
-        .upsert(a)
-        .run
-        .transact(xa)
-        .map(_ => a)
-        .orDie
+  def store(as: List[Account]): Task[Unit] =
+    SQL
+      .insertMany(as)
+      .transact(xa)
+      .map(_ => ())
+      .orDie
 
-    def store(as: List[Account]): Task[Unit] =
-      SQL
-        .insertMany(as)
-        .transact(xa)
-        .map(_ => ())
-        .orDie
+  def allOpenedOn(openedOnDate: LocalDate): Task[List[Account]] =
+    SQL
+      .getByDateOfOpen(openedOnDate)
+      .to[List]
+      .transact(xa)
+      .orDie
 
-    def allOpenedOn(openedOnDate: LocalDate): Task[List[Account]] =
-      SQL
-        .getByDateOfOpen(openedOnDate)
-        .to[List]
-        .transact(xa)
-        .orDie
+  def allClosed(closeDate: Option[LocalDate]): Task[List[Account]] =
+    closeDate
+      .map { cd =>
+        SQL.getAllClosedAfter(cd).to[List].transact(xa).orDie
+      }
+      .getOrElse(SQL.getAllClosed.to[List].transact(xa).orDie)
 
-    def allClosed(closeDate: Option[LocalDate]): Task[List[Account]] =
-      closeDate
-        .map { cd =>
-          SQL.getAllClosedAfter(cd).to[List].transact(xa).orDie
-        }
-        .getOrElse(SQL.getAllClosed.to[List].transact(xa).orDie)
-
-    def allAccountsOfType(accountType: AccountType): Task[List[Account]] =
-      SQL
-        .getByType(accountType.entryName)
-        .to[List]
-        .transact(xa)
-        .orDie
-  }
+  def allAccountsOfType(accountType: AccountType): Task[List[Account]] =
+    SQL
+      .getByType(accountType.entryName)
+      .to[List]
+      .transact(xa)
+      .orDie
 }
 
-object DoobieAccountRepository extends CatzInterop {
-  // Module Implementation
-  // Needs `DbConfigProvider` and `Blocking` services and gives back `AccountRepository` module
-  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, AccountRepository] = {
-
-    ZLayer.fromManaged {
-      for {
-        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
-        transactor <- mkTransactor(cfg)
-      } yield new DoobieAccountRepository(transactor).accountRepository
-    }
+object AccountRepositoryLive extends CatzInterop {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[AccountRepository]] = {
+    (for {
+      cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+      transactor <- mkTransactor(cfg)
+    } yield new AccountRepositoryLive(transactor)).toLayer
   }
 
   object SQL {

@@ -4,13 +4,11 @@ package repository
 import zio._
 import model.user._
 
-object UserRepository {
-  trait Service {
+trait UserRepository {
 
-    /** query by username */
-    def queryByUserName(username: UserName): Task[Option[User]]
+  /** query by username */
+  def queryByUserName(username: UserName): Task[Option[User]]
 
-    /** store a user * */
-    def store(username: UserName, password: EncryptedPassword): Task[UserId]
-  }
+  /** store a user * */
+  def store(username: UserName, password: EncryptedPassword): Task[UserId]
 }

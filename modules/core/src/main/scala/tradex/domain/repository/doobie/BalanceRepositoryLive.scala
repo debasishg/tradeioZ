@@ -16,49 +16,44 @@ import codecs._
 import config._
 import repository.BalanceRepository
 
-final class DoobieBalanceRepository(xa: Transactor[Task]) {
-  import DoobieBalanceRepository.SQL
+final case class BalanceRepositoryLive(xa: Transactor[Task]) extends BalanceRepository {
+  import BalanceRepositoryLive.SQL
 
-  val balanceRepository = new BalanceRepository.Service {
-    def queryBalanceByAccountNo(no: AccountNo): Task[Option[Balance]] =
-      SQL
-        .get(no.value.value)
-        .option
-        .transact(xa)
-        .orDie
+  def queryBalanceByAccountNo(no: AccountNo): Task[Option[Balance]] =
+    SQL
+      .get(no.value.value)
+      .option
+      .transact(xa)
+      .orDie
 
-    def store(b: Balance): Task[Balance] =
-      SQL
-        .upsert(b)
-        .run
-        .transact(xa)
-        .map(_ => b)
-        .orDie
+  def store(b: Balance): Task[Balance] =
+    SQL
+      .upsert(b)
+      .run
+      .transact(xa)
+      .map(_ => b)
+      .orDie
 
-    def queryBalanceAsOf(date: LocalDate): Task[List[Balance]] =
-      SQL
-        .getAsOf(date)
-        .to[List]
-        .transact(xa)
-        .orDie
+  def queryBalanceAsOf(date: LocalDate): Task[List[Balance]] =
+    SQL
+      .getAsOf(date)
+      .to[List]
+      .transact(xa)
+      .orDie
 
-    def allBalances: Task[List[Balance]] =
-      SQL.getAll
-        .to[List]
-        .transact(xa)
-        .orDie
-  }
+  def allBalances: Task[List[Balance]] =
+    SQL.getAll
+      .to[List]
+      .transact(xa)
+      .orDie
 }
 
-object DoobieBalanceRepository extends CatzInterop {
-  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, BalanceRepository] = {
-
-    ZLayer.fromManaged {
-      for {
-        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
-        transactor <- mkTransactor(cfg)
-      } yield new DoobieBalanceRepository(transactor).balanceRepository
-    }
+object BalanceRepositoryLive extends CatzInterop {
+  val layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[BalanceRepository]] = {
+    (for {
+      cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+      transactor <- mkTransactor(cfg)
+    } yield new BalanceRepositoryLive(transactor)).toLayer
   }
 
   object SQL {
@@ -133,6 +128,5 @@ object DoobieBalanceRepository extends CatzInterop {
       select * from balances b 
 			where DATE(b.asOf) <= $asOf
       """.query[Balance]
-
   }
 }
