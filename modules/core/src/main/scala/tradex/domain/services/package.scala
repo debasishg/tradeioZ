@@ -16,9 +16,10 @@ import model.balance._
 import java.time.LocalDate
 
 package object services {
-  type TradingService    = Has[TradingService.Service]
+  // type TradingService    = Has[TradingService.Service]
   type AccountingService = Has[AccountingService.Service]
 
+  /*
   def getAccountsOpenedOn(openDate: LocalDate): ZIO[TradingService, TradingError, List[Account]] =
     ZIO.accessM(_.get.getAccountsOpenedOn(openDate))
 
@@ -44,6 +45,7 @@ package object services {
       userId: UserId
   ): ZIO[TradingService, TradingError, NonEmptyList[Trade]] =
     ZIO.accessM(_.get.allocate(executions, clientAccounts, userId))
+   */
 
   def postBalance(trade: Trade): ZIO[AccountingService, AccountingError, Balance] =
     ZIO.accessM(_.get.postBalance(trade))
