@@ -15,17 +15,18 @@ import model.market._
 
 package object repository {
   // Module definitions
-  type AccountRepository    = Has[AccountRepository.Service]
+  // type AccountRepository    = Has[AccountRepository.Service]
   type InstrumentRepository = Has[InstrumentRepository.Service]
   type OrderRepository      = Has[OrderRepository.Service]
   type UserRepository       = Has[UserRepository.Service]
-  type BalanceRepository    = Has[BalanceRepository.Service]
-  type ExecutionRepository  = Has[ExecutionRepository.Service]
-  type TradeRepository      = Has[TradeRepository.Service]
+  // type BalanceRepository    = Has[BalanceRepository.Service]
+  type ExecutionRepository = Has[ExecutionRepository.Service]
+  type TradeRepository     = Has[TradeRepository.Service]
 
   // Accessor Methods for all modules
 
   /** AccountRepository */
+  /*
   def queryByAccountNo(no: AccountNo): RIO[AccountRepository, Option[Account]] =
     ZIO.accessM(_.get.queryByAccountNo(no))
 
@@ -46,6 +47,7 @@ package object repository {
 
   def allAccountsOfType(accountType: AccountType): RIO[AccountRepository, List[Account]] =
     ZIO.accessM(_.get.allAccountsOfType(accountType))
+   */
 
   /** InstrumentRepository */
   def queryByISINCode(isin: ISINCode): RIO[InstrumentRepository, Option[Instrument]] =
@@ -78,6 +80,7 @@ package object repository {
     ZIO.accessM(_.get.store(username, password))
 
   /** BalanceRepository */
+  /*
   def queryBalanceByAccountNo(no: AccountNo): RIO[BalanceRepository, Option[Balance]] =
     ZIO.accessM(_.get.queryBalanceByAccountNo(no))
 
@@ -89,6 +92,7 @@ package object repository {
 
   def allBalances: RIO[BalanceRepository, List[Balance]] =
     ZIO.accessM(_.get.allBalances)
+   */
 
   /** ExecutionRepository */
   def store(exe: Execution): RIO[ExecutionRepository, Execution] =
