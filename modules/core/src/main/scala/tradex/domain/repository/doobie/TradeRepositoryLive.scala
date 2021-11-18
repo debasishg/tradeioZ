@@ -24,8 +24,8 @@ import codecs._
 import repository.TradeRepository
 import config._
 
-final class DoobieTradeRepository(xa: Transactor[Task]) {
-  import DoobieTradeRepository._
+final case class TradeRepositoryLive(xa: Transactor[Task]) extends TradeRepository {
+  import TradeRepositoryLive.SQL
 
   implicit val TradeAssociative: Associative[Trade] =
     new Associative[Trade] {
@@ -33,68 +33,63 @@ final class DoobieTradeRepository(xa: Transactor[Task]) {
         left.copy(taxFees = left.taxFees ++ right.taxFees)
     }
 
-  val tradeRepository = new TradeRepository.Service {
+  def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): Task[List[Trade]] =
+    SQL
+      .getTradesByAccountNo(accountNo.value.value, date)
+      .to[List]
+      .map(_.groupBy(_.tradeRefNo))
+      .map {
+        _.map { case (refNo, lis) =>
+          lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
+        }.toList
+      }
+      .transact(xa)
+      .orDie
 
-    def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): Task[List[Trade]] =
-      SQL
-        .getTradesByAccountNo(accountNo.value.value, date)
-        .to[List]
-        .map(_.groupBy(_.tradeRefNo))
-        .map {
-          _.map { case (refNo, lis) =>
-            lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
-          }.toList
-        }
-        .transact(xa)
-        .orDie
+  def queryTradeByMarket(market: Market): Task[List[Trade]] =
+    SQL
+      .getTradesByMarket(market.entryName)
+      .to[List]
+      .map(_.groupBy(_.tradeRefNo))
+      .map {
+        _.map { case (refNo, lis) =>
+          lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
+        }.toList
+      }
+      .transact(xa)
+      .orDie
 
-    def queryTradeByMarket(market: Market): Task[List[Trade]] =
-      SQL
-        .getTradesByMarket(market.entryName)
-        .to[List]
-        .map(_.groupBy(_.tradeRefNo))
-        .map {
-          _.map { case (refNo, lis) =>
-            lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
-          }.toList
-        }
-        .transact(xa)
-        .orDie
+  def allTrades: Task[List[Trade]] =
+    SQL.getAllTrades
+      .to[List]
+      .map(_.groupBy(_.tradeRefNo))
+      .map {
+        _.map { case (refNo, lis) =>
+          lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
+        }.toList
+      }
+      .transact(xa)
+      .orDie
 
-    def allTrades: Task[List[Trade]] =
-      SQL.getAllTrades
-        .to[List]
-        .map(_.groupBy(_.tradeRefNo))
-        .map {
-          _.map { case (refNo, lis) =>
-            lis.reduce((t1, t2) => Associative[Trade].combine(t1, t2)).copy(tradeRefNo = refNo)
-          }.toList
-        }
-        .transact(xa)
-        .orDie
+  def store(trd: Trade): Task[Trade] =
+    SQL
+      .insertTrade(trd)
+      .transact(xa)
+      .map(_ => trd)
+      .orDie
 
-    def store(trd: Trade): Task[Trade] =
-      SQL
-        .insertTrade(trd)
-        .transact(xa)
-        .map(_ => trd)
-        .orDie
-
-    def storeNTrades(trades: NonEmptyList[Trade]): Task[Unit] =
-      trades.forEach(trade => store(trade)).map(_ => ())
-  }
+  def storeNTrades(trades: NonEmptyList[Trade]): Task[Unit] =
+    trades.forEach(trade => store(trade)).map(_ => ())
 }
 
-object DoobieTradeRepository extends CatzInterop {
-  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, TradeRepository] = {
-
-    ZLayer.fromManaged {
-      for {
-        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
-        transactor <- mkTransactor(cfg)
-      } yield new DoobieTradeRepository(transactor).tradeRepository
-    }
+object TradeRepositoryLive extends CatzInterop {
+  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[TradeRepository]] = {
+    (for {
+      cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+      transactor <- mkTransactor(cfg)
+    } yield new TradeRepositoryLive(transactor)).toLayer
   }
+
   object SQL {
 
     // when writing we have a valid `Execution` - hence we can use

@@ -19,8 +19,8 @@ import model.order._
 import model.instrument._
 import repository.OrderRepository
 
-final class DoobieOrderRepository(xa: Transactor[Task]) {
-  import DoobieOrderRepository._
+final case class OrderRepositoryLive(xa: Transactor[Task]) extends OrderRepository {
+  import OrderRepositoryLive.SQL
 
   implicit val OrderAssociative: Associative[Order] =
     new Associative[Order] {
@@ -28,61 +28,56 @@ final class DoobieOrderRepository(xa: Transactor[Task]) {
         Order(left.no, left.date, left.accountNo, left.items ++ right.items)
     }
 
-  val orderRepository: OrderRepository.Service = new OrderRepository.Service {
-    def queryByOrderNo(no: OrderNo): Task[Option[Order]] = {
-      SQL
-        .getByOrderNo(no.value.value)
-        .to[List]
-        .map(_.groupBy(_.no))
-        .map {
-          _.map { case (_, lis) =>
-            lis.reduce((o1, o2) => Associative[Order].combine(o1, o2))
-          }.headOption
-        }
-        .transact(xa)
-        .orDie
-    }
-
-    def queryByOrderDate(date: LocalDate): Task[List[Order]] = {
-      SQL
-        .getByOrderDate(date)
-        .to[List]
-        .map(_.groupBy(_.no))
-        .map {
-          _.map { case (_, lis) =>
-            lis.reduce((o1, o2) => Associative[Order].combine(o1, o2))
-          }.toList
-        }
-        .transact(xa)
-        .orDie
-    }
-
-    def store(ord: Order): Task[Order] = {
-      val res = for {
-        _ <- SQL.deleteLineItems(ord.no.value.value).run
-        _ <- SQL.upsertOrder(ord).run
-        l <- SQL.insertLineItems(ord.items.toList)
-      } yield l
-      res
-        .transact(xa)
-        .map(_ => ord)
-        .orDie
-    }
-
-    def store(orders: NonEmptyList[Order]): Task[Unit] =
-      orders.forEach(order => store(order)).map(_ => ())
+  def queryByOrderNo(no: OrderNo): Task[Option[Order]] = {
+    SQL
+      .getByOrderNo(no.value.value)
+      .to[List]
+      .map(_.groupBy(_.no))
+      .map {
+        _.map { case (_, lis) =>
+          lis.reduce((o1, o2) => Associative[Order].combine(o1, o2))
+        }.headOption
+      }
+      .transact(xa)
+      .orDie
   }
+
+  def queryByOrderDate(date: LocalDate): Task[List[Order]] = {
+    SQL
+      .getByOrderDate(date)
+      .to[List]
+      .map(_.groupBy(_.no))
+      .map {
+        _.map { case (_, lis) =>
+          lis.reduce((o1, o2) => Associative[Order].combine(o1, o2))
+        }.toList
+      }
+      .transact(xa)
+      .orDie
+  }
+
+  def store(ord: Order): Task[Order] = {
+    val res = for {
+      _ <- SQL.deleteLineItems(ord.no.value.value).run
+      _ <- SQL.upsertOrder(ord).run
+      l <- SQL.insertLineItems(ord.items.toList)
+    } yield l
+    res
+      .transact(xa)
+      .map(_ => ord)
+      .orDie
+  }
+
+  def store(orders: NonEmptyList[Order]): Task[Unit] =
+    orders.forEach(order => store(order)).map(_ => ())
 }
 
-object DoobieOrderRepository extends CatzInterop {
-  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, OrderRepository] = {
-
-    ZLayer.fromManaged {
-      for {
-        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
-        transactor <- mkTransactor(cfg)
-      } yield new DoobieOrderRepository(transactor).orderRepository
-    }
+object OrderRepositoryLive extends CatzInterop {
+  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[OrderRepository]] = {
+    (for {
+      cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+      transactor <- mkTransactor(cfg)
+    } yield new OrderRepositoryLive(transactor)).toLayer
   }
 
   object SQL {

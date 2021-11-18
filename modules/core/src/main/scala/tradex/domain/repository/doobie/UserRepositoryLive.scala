@@ -14,35 +14,30 @@ import codecs._
 import config._
 import repository.UserRepository
 
-final class DoobieUserRepository(xa: Transactor[Task]) {
-  import DoobieUserRepository._
+final case class UserRepositoryLive(xa: Transactor[Task]) extends UserRepository {
+  import UserRepositoryLive.SQL
 
-  val userRepository: UserRepository.Service = new UserRepository.Service {
-    def queryByUserName(username: UserName): Task[Option[User]] =
-      SQL
-        .getByUserName(username.value.value)
-        .option
-        .transact(xa)
-        .orDie
+  def queryByUserName(username: UserName): Task[Option[User]] =
+    SQL
+      .getByUserName(username.value.value)
+      .option
+      .transact(xa)
+      .orDie
 
-    def store(username: UserName, password: EncryptedPassword): Task[UserId] =
-      SQL
-        .insert(username, password)
-        .transact(xa)
-        .map(_.userId)
-        .orDie
-  }
+  def store(username: UserName, password: EncryptedPassword): Task[UserId] =
+    SQL
+      .insert(username, password)
+      .transact(xa)
+      .map(_.userId)
+      .orDie
 }
 
-object DoobieUserRepository extends CatzInterop {
-  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, UserRepository] = {
-
-    ZLayer.fromManaged {
-      for {
-        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
-        transactor <- mkTransactor(cfg)
-      } yield new DoobieUserRepository(transactor).userRepository
-    }
+object UserRepositoryLive extends CatzInterop {
+  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[UserRepository]] = {
+    (for {
+      cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+      transactor <- mkTransactor(cfg)
+    } yield new UserRepositoryLive(transactor)).toLayer
   }
 
   object SQL {

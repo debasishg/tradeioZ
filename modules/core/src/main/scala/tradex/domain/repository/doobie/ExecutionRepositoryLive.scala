@@ -20,39 +20,35 @@ import codecs._
 import repository.ExecutionRepository
 import config._
 
-final class DoobieExecutionRepository(xa: Transactor[Task]) {
-  import DoobieExecutionRepository.SQL
-  val executionRepository = new ExecutionRepository.Service {
+final case class ExecutionRepositoryLive(xa: Transactor[Task]) extends ExecutionRepository {
+  import ExecutionRepositoryLive.SQL
 
-    /** store */
-    def store(exe: Execution): Task[Execution] =
-      SQL
-        .insertExecution(exe)
-        .run
-        .transact(xa)
-        .map(_ => exe)
-        .orDie
+  /** store */
+  def store(exe: Execution): Task[Execution] =
+    SQL
+      .insertExecution(exe)
+      .run
+      .transact(xa)
+      .map(_ => exe)
+      .orDie
 
-    /** store many executions */
-    def storeMany(executions: NonEmptyList[Execution]): Task[Unit] =
-      SQL
-        .insertMany(executions.toList)
-        .transact(xa)
-        .map(_ => ())
-        .orDie
-  }
+  /** store many executions */
+  def storeMany(executions: NonEmptyList[Execution]): Task[Unit] =
+    SQL
+      .insertMany(executions.toList)
+      .transact(xa)
+      .map(_ => ())
+      .orDie
 }
 
-object DoobieExecutionRepository extends CatzInterop {
-  def layer: ZLayer[DbConfigProvider with Blocking, Throwable, ExecutionRepository] = {
-
-    ZLayer.fromManaged {
-      for {
-        cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
-        transactor <- mkTransactor(cfg)
-      } yield new DoobieExecutionRepository(transactor).executionRepository
-    }
+object ExecutionRepositoryLive extends CatzInterop {
+  def layer: ZLayer[Has[DBConfig] with Has[Blocking.Service], Throwable, Has[ExecutionRepository]] = {
+    (for {
+      cfg        <- ZIO.access[DbConfigProvider](_.get).toManaged_
+      transactor <- mkTransactor(cfg)
+    } yield new ExecutionRepositoryLive(transactor)).toLayer
   }
+
   object SQL {
 
     // when writing we have a valid `Execution` - hence we can use

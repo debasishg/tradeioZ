@@ -17,7 +17,7 @@ import config._
 import repository.BalanceRepository
 
 final case class BalanceRepositoryLive(xa: Transactor[Task]) extends BalanceRepository {
-  import DoobieBalanceRepository.SQL
+  import BalanceRepositoryLive.SQL
 
   def queryBalanceByAccountNo(no: AccountNo): Task[Option[Balance]] =
     SQL

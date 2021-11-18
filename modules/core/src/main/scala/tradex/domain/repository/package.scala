@@ -16,12 +16,12 @@ import model.market._
 package object repository {
   // Module definitions
   // type AccountRepository    = Has[AccountRepository.Service]
-  type InstrumentRepository = Has[InstrumentRepository.Service]
-  type OrderRepository      = Has[OrderRepository.Service]
-  type UserRepository       = Has[UserRepository.Service]
+  // type InstrumentRepository = Has[InstrumentRepository.Service]
+  // type OrderRepository = Has[OrderRepository.Service]
+  // type UserRepository = Has[UserRepository.Service]
   // type BalanceRepository    = Has[BalanceRepository.Service]
-  type ExecutionRepository = Has[ExecutionRepository.Service]
-  type TradeRepository     = Has[TradeRepository.Service]
+  // type ExecutionRepository = Has[ExecutionRepository.Service]
+  // type TradeRepository = Has[TradeRepository.Service]
 
   // Accessor Methods for all modules
 
@@ -50,6 +50,7 @@ package object repository {
    */
 
   /** InstrumentRepository */
+  /*
   def queryByISINCode(isin: ISINCode): RIO[InstrumentRepository, Option[Instrument]] =
     ZIO.accessM(_.get.queryByISINCode(isin))
 
@@ -58,8 +59,10 @@ package object repository {
 
   def store(ins: Instrument): RIO[InstrumentRepository, Instrument] =
     ZIO.accessM(_.get.store(ins))
+   */
 
   /** OrderRepository */
+  /*
   def queryByOrderNo(no: OrderNo): RIO[OrderRepository, Option[Order]] =
     ZIO.accessM(_.get.queryByOrderNo(no))
 
@@ -71,13 +74,16 @@ package object repository {
 
   def store(orders: NonEmptyList[Order]): RIO[OrderRepository, Unit] =
     ZIO.accessM(_.get.store(orders))
+   */
 
   /** UserRepository */
+  /*
   def queryByUserName(username: UserName): RIO[UserRepository, Option[User]] =
     ZIO.accessM(_.get.queryByUserName(username))
 
   def store(username: UserName, password: EncryptedPassword): RIO[UserRepository, UserId] =
     ZIO.accessM(_.get.store(username, password))
+   */
 
   /** BalanceRepository */
   /*
@@ -95,13 +101,16 @@ package object repository {
    */
 
   /** ExecutionRepository */
+  /*
   def store(exe: Execution): RIO[ExecutionRepository, Execution] =
     ZIO.accessM(_.get.store(exe))
 
   def storeMany(executions: NonEmptyList[Execution]): RIO[ExecutionRepository, Unit] =
     ZIO.accessM(_.get.storeMany(executions))
+   */
 
   /** TradeRepository */
+  /*
   def queryTradeByAccountNo(accountNo: AccountNo, date: LocalDate): RIO[TradeRepository, List[Trade]] =
     ZIO.accessM(_.get.queryTradeByAccountNo(accountNo, date))
 
@@ -116,4 +125,5 @@ package object repository {
 
   def storeNTrades(trades: NonEmptyList[Trade]): RIO[TradeRepository, Unit] =
     ZIO.accessM(_.get.storeNTrades(trades))
+   */
 }
