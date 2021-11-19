@@ -2,7 +2,6 @@ package tradex.domain
 package repository.inmemory
 
 import zio._
-import zio.random._
 import zio.prelude.NonEmptyList
 import java.time._
 import model.trade._
