@@ -7,7 +7,7 @@ import collection.immutable.Map
 import repository.AccountRepository
 import model.account._
 
-case class AccountRepositoryInMemory(state: Ref[Map[AccountNo, Account]]) extends AccountRepository {
+final case class AccountRepositoryInMemory(state: Ref[Map[AccountNo, Account]]) extends AccountRepository {
 
   override def queryByAccountNo(no: AccountNo): Task[Option[Account]] = state.get.map(_.get(no))
 
@@ -25,4 +25,9 @@ case class AccountRepositoryInMemory(state: Ref[Map[AccountNo, Account]]) extend
 
   override def allAccountsOfType(accountType: AccountType): Task[List[Account]] =
     state.get.map(_.values.filter(_.accountType == accountType).toList)
+}
+
+object AccountRepositoryInMemory {
+  val layer: ULayer[Has[AccountRepository]] =
+    Ref.make(Map.empty[AccountNo, Account]).map(r => AccountRepositoryInMemory(r)).toLayer
 }

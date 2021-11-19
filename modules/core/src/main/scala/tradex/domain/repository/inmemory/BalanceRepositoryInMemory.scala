@@ -18,3 +18,8 @@ final case class BalanceRepositoryInMemory(state: Ref[Map[AccountNo, Balance]]) 
 
   def allBalances: Task[List[Balance]] = state.get.map(_.values.toList)
 }
+
+object BalanceRepositoryInMemory {
+  val layer: ULayer[Has[BalanceRepository]] =
+    Ref.make(Map.empty[AccountNo, Balance]).map(r => BalanceRepositoryInMemory(r)).toLayer
+}

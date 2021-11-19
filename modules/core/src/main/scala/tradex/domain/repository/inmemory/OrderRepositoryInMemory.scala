@@ -16,3 +16,8 @@ final case class OrderRepositoryInMemory(state: Ref[Map[OrderNo, Order]]) extend
 
   def store(orders: NonEmptyList[Order]): Task[Unit] = state.update(m => m ++ (orders.map(order => (order.no, order))))
 }
+
+object OrderRepositoryInMemory {
+  val layer: ULayer[Has[OrderRepository]] =
+    Ref.make(Map.empty[OrderNo, Order]).map(r => OrderRepositoryInMemory(r)).toLayer
+}

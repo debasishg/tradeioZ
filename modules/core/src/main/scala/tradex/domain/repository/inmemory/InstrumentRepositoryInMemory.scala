@@ -14,3 +14,8 @@ final case class InstrumentRepositoryInMemory(state: Ref[Map[ISINCode, Instrumen
 
   def store(ins: Instrument): Task[Instrument] = state.update(m => m + ((ins.isinCode, ins))).map(_ => ins)
 }
+
+object InstrumentRepositoryInMemory {
+  val layer: ULayer[Has[InstrumentRepository]] =
+    Ref.make(Map.empty[ISINCode, Instrument]).map(r => InstrumentRepositoryInMemory(r)).toLayer
+}

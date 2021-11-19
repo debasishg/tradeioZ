@@ -29,3 +29,8 @@ final case class TradeRepositoryInMemory(state: Ref[Map[TradeReferenceNo, Trade]
 
   def storeNTrades(trades: NonEmptyList[Trade]): Task[Unit] = trades.forEach(t => store(t)).map(_ => ())
 }
+
+object TradeRepositoryInMemory {
+  val layer: ULayer[Has[TradeRepository]] =
+    Ref.make(Map.empty[TradeReferenceNo, Trade]).map(r => TradeRepositoryInMemory(r)).toLayer
+}

@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "tradeioz"
   )
-  .aggregate(core)
+  .aggregate(core, tests)
 
 lazy val core = (project in file("modules/core")).settings(
   name := "tradeio-core",
@@ -21,6 +21,19 @@ lazy val core = (project in file("modules/core")).settings(
   consoleSettings,
   dependencies
 )
+
+lazy val tests = (project in file("modules/tests"))
+  .configs(IntegrationTest)
+  .settings(
+    name := "tradeioz-test-suite",
+    commonSettings,
+    testFrameworks := Seq(new TestFramework("zio.test.sbt.ZTestFramework")),
+    Defaults.itSettings,
+    scalafixCommonSettings,
+    testDependencies
+  )
+  .dependsOn(core)
+
 
 lazy val commonSettings = Seq(
   scalafmtOnCompile := true,
@@ -54,3 +67,7 @@ lazy val compilerOptions = {
 
 lazy val dependencies =
   libraryDependencies ++= Dependencies.tradeioDependencies
+
+lazy val testDependencies =
+  libraryDependencies ++= Dependencies.testDependencies
+

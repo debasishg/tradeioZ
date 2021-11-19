@@ -10,6 +10,8 @@ object Dependencies {
   val zioConfigTypesafe = "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
   val zioInteropCats = "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion
   val flywayDb = "org.flywaydb" % "flyway-core" % flywayDbVersion
+  val zioTest = "dev.zio" %% "zio-test" % zioVersion % "test"
+  val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion % "test"
 
   // Scalafix rules
   val organizeImports = "com.github.liancheng" %% "organize-imports" % organizeImportsVersion
@@ -92,4 +94,7 @@ object Dependencies {
       Seq(Ciris.cirisCore, Ciris.cirisEnum, Ciris.cirisRefined, Ciris.cirisCirce, Ciris.cirisSquants) ++
       Seq(Circe.circeCore, Circe.circeGeneric, Circe.circeParser, Circe.circeRefined) ++
       Seq(Doobie.doobieCore, Doobie.doobieHikari, Doobie.doobiePostgres, Doobie.doobieH2, Doobie.doobieEnumeratum)
+
+  val testDependencies: Seq[ModuleID] =
+    Seq(zioTest, zioTestSbt)
 }

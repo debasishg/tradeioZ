@@ -13,3 +13,8 @@ final case class ExecutionRepositoryInMemory(state: Ref[Map[ExecutionReferenceNo
   def storeMany(executions: NonEmptyList[Execution]): Task[Unit] =
     state.update(m => m ++ (executions.map(exe => (exe.executionRefNo.get, exe))))
 }
+
+object ExecutionRepositoryInMemory {
+  val layer: ULayer[Has[ExecutionRepository]] =
+    Ref.make(Map.empty[ExecutionReferenceNo, Execution]).map(r => ExecutionRepositoryInMemory(r)).toLayer
+}
