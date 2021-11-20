@@ -35,10 +35,25 @@ object generators {
       .map(s => validate[AccountName](s))
       .map(_.fold(errs => throw new Exception(errs.toString), identity))
 
+  def accountNameStartingPatternGen(pattern: String): Gen[Random with Sized, AccountName] =
+    nonEmptyStringGen
+      .map(s => validate[AccountName](s"$pattern$s"))
+      .map(_.fold(errs => throw new Exception(errs.toString), identity))
+
   def openCloseDateGen = for {
     o <- Gen.fromIterable(List(LocalDateTime.now, LocalDateTime.now.plusDays(2)))
     c <- Gen.const(o.plusDays(100))
   } yield (o, c)
+
+  def accountWithNamePatternGen(pattern: String) = for {
+    no <- accountNoGen
+    nm <- accountNameStartingPatternGen(pattern)
+    oc <- openCloseDateGen
+    tp <- Gen.fromIterable(AccountType.values)
+    bc <- Gen.const(USD)
+    tc <- Gen.fromIterable(List(USD, JPY)).map(Some(_))
+    sc <- Gen.const(None)
+  } yield Account(no, nm, oc._1, Some(oc._2), tp, bc, tc, sc)
 
   val tradingAccountGen: Gen[Random with Sized, Account] = for {
     no <- accountNoGen
