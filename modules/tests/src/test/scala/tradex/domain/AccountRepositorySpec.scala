@@ -6,7 +6,7 @@ import zio.test.Assertion._
 import generators._
 import model.account._
 import repository.AccountRepository
-import tradex.domain.repository.inmemory.AccountRepositoryInMemory
+import repository.inmemory.AccountRepositoryInMemory
 
 object AccountRepositorySpec extends DefaultRunnableSpec {
   val spec = suite("AccountRepository")(
