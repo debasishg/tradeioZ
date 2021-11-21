@@ -15,7 +15,7 @@ object AccountRepositorySpec extends DefaultRunnableSpec {
         for {
           stored <- AccountRepository.store(account)
         } yield assert(stored.accountType)(
-          isOneOf(List(AccountType.Trading, AccountType.Settlement, AccountType.Both))
+          isOneOf(AccountType.values)
         )
       }
     }.provideCustomLayer(AccountRepositoryInMemory.layer),

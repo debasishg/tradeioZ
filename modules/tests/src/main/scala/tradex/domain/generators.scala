@@ -9,7 +9,6 @@ import eu.timepit.refined.types.string.NonEmptyString
 
 import zio.random.Random
 import zio.test._
-import zio.test.Gen._
 import zio.test.Gen.fromEffectSample
 
 import squants.market.USD
