@@ -1,6 +1,7 @@
 package tradex.domain
 
 import zio._
+import zio.random.Random
 
 import services.trading._
 import services.accounting._
@@ -17,6 +18,7 @@ object TestApplication {
       with Has[ExecutionRepository]
       with Has[TradeRepository]
       with Has[BalanceRepository]
+      with Has[Random.Service]
 
   type ServiceLayerEnv =
     RepositoryLayerEnv with Has[TradingService] with Has[AccountingService]
@@ -26,19 +28,20 @@ object TestApplication {
   // compose layers for test
   object test {
 
-    val repositoryLayer: ULayer[RepositoryLayerEnv] =
-      AccountRepositoryInMemory.layer ++
+    val repositoryLayer: ZLayer[Random, Throwable, RepositoryLayerEnv] =
+      Random.any ++ AccountRepositoryInMemory.layer ++
         OrderRepositoryInMemory.layer ++
         ExecutionRepositoryInMemory.layer ++
         TradeRepositoryInMemory.layer ++
-        BalanceRepositoryInMemory.layer ++
-        ZLayer.identity
+        BalanceRepositoryInMemory.layer // ++ ZLayer.identity
 
     val serviceLayer: ZLayer[RepositoryLayerEnv, Throwable, ServiceLayerEnv] =
+      // val serviceLayer: ULayer[ServiceLayerEnv] =
       TradingServiceLive.layer ++ AccountingServiceLive.layer ++ ZLayer.identity
 
     // final application layer for test
-    val testAppLayer: ZLayer[Any, Throwable, TestAppEnv] =
-      repositoryLayer >>> serviceLayer
+    val testAppLayer: ZLayer[Random, Throwable, TestAppEnv] =
+      // val testAppLayer: ULayer[TestAppEnv] =
+      repositoryLayer >+> serviceLayer
   }
 }

@@ -22,8 +22,14 @@ final case class TradeRepositoryInMemory(state: Ref[Map[TradeReferenceNo, Trade]
   def store(trd: Trade): Task[Trade] =
     state
       .updateAndGet { m =>
-        val ref = TradeReferenceNo(java.util.UUID.randomUUID())
-        m + ((ref, trd.copy(tradeRefNo = Some(ref))))
+        trd.tradeRefNo
+          .map { refNo =>
+            m + ((refNo, trd))
+          }
+          .getOrElse {
+            val ref = TradeReferenceNo(java.util.UUID.randomUUID())
+            m + ((ref, trd.copy(tradeRefNo = Some(ref))))
+          }
       }
       .map(_ => trd)
 
