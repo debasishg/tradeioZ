@@ -1,6 +1,7 @@
 package tradex.domain
 
 import zio._
+import zio.prelude._
 import zio.test._
 import zio.test.Assertion._
 import zio.test.environment.TestClock
@@ -8,6 +9,7 @@ import zio.duration._
 
 import generators._
 import repository._
+import model.account._
 import repository.inmemory._
 import services.trading._
 import java.time._
@@ -31,6 +33,37 @@ object TradingServiceSpec extends DefaultRunnableSpec {
           equalTo(true)
         )
       }
+    }.provideCustomLayer(
+      (AccountRepositoryInMemory.layer ++
+        OrderRepositoryInMemory.layer ++
+        ExecutionRepositoryInMemory.layer ++
+        TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
+    ),
+    testM("successfully invoke getTrades") {
+      checkM(accountGen) { account =>
+        for {
+          stored <- AccountRepository.store(account)
+        } yield assert(stored.accountType)(
+          isOneOf(AccountType.values)
+        )
+      } *>
+        checkM(Gen.listOfN(5)(tradeGen)) { trades =>
+          for {
+            accs <- AccountRepository.all
+            _    <- TestClock.adjust(1.day)
+            now  <- clock.instant
+            dt                    = LocalDateTime.ofInstant(now, ZoneOffset.UTC)
+            tradesTodayForAccount = trades.map(_.copy(accountNo = accs.head.no, tradeDate = dt))
+            _ <- TradeRepository.storeNTrades(
+              NonEmptyList(tradesTodayForAccount.head, tradesTodayForAccount.tail: _*)
+            )
+            fetched <- TradingService.getTrades(accs.head.no, Some(dt.toLocalDate()))
+          } yield assert(
+            fetched.forall(_.tradeDate.toLocalDate() == dt.toLocalDate())
+          )(
+            equalTo(true)
+          )
+        }
     }.provideCustomLayer(
       (AccountRepositoryInMemory.layer ++
         OrderRepositoryInMemory.layer ++

@@ -2,7 +2,7 @@ package tradex.domain
 
 import java.time._
 import eu.timepit.refined._
-import eu.timepit.refined.api.Refined
+import eu.timepit.refined.api.{ RefType, Refined }
 import eu.timepit.refined.auto._
 import eu.timepit.refined.numeric._
 import eu.timepit.refined.types.string.NonEmptyString
@@ -15,6 +15,11 @@ import squants.market.USD
 import squants.market.JPY
 
 import model.account._
+import model.instrument._
+import model.order._
+import model.user._
+import model.market._
+import model.trade._
 import NewtypeRefinedOps._
 
 object generators {
@@ -86,4 +91,58 @@ object generators {
 
   def accountGen: Gen[Random with Sized, Account] =
     Gen.oneOf(tradingAccountGen, settlementAccountGen, bothAccountGen)
+
+  def isinGen: Gen[Any, ISINCode] = {
+    val appleISINStr = "US0378331005"
+    val baeISINStr   = "GB0002634946"
+    val ibmISINStr   = "US4592001014"
+
+    val isins = List(appleISINStr, baeISINStr, ibmISINStr)
+      .map(str =>
+        RefType
+          .applyRef[ISINCodeString](str)
+          .map(ISINCode(_))
+          .fold(err => throw new Exception(err), identity)
+      )
+    Gen.fromIterable(isins)
+  }
+
+  val unitPriceGen: Gen[Any, UnitPrice] = {
+    val ups = List(BigDecimal(12.25), BigDecimal(51.25), BigDecimal(55.25))
+      .map(n =>
+        RefType
+          .applyRef[UnitPriceType](n)
+          .map(UnitPrice(_))
+          .fold(err => throw new Exception(err), identity)
+      )
+    Gen.fromIterable(ups)
+  }
+
+  val quantityGen: Gen[Any, Quantity] = {
+    val qtys = List(BigDecimal(100), BigDecimal(200), BigDecimal(300))
+      .map(n =>
+        RefType
+          .applyRef[QuantityType](n)
+          .map(Quantity(_))
+          .fold(err => throw new Exception(err), identity)
+      )
+    Gen.fromIterable(qtys)
+  }
+
+  val userIdGen: Gen[Random, UserId] = Gen.anyUUID.map(UserId(_))
+
+  val tradeGen: Gen[Random with Sized, Trade] = for {
+    no   <- accountNoGen
+    isin <- isinGen
+    mkt  <- Gen.fromIterable(Market.values)
+    bs   <- Gen.fromIterable(BuySell.values)
+    up   <- unitPriceGen
+    qty  <- quantityGen
+    td   <- Gen.fromIterable(List(LocalDateTime.now, LocalDateTime.now.plusDays(2)))
+    vd   <- Gen.const(None)
+    uid  <- userIdGen
+  } yield Trade
+    .trade(no, isin, mkt, bs, up, qty, td, vd, Some(uid))
+    .fold(errs => throw new Exception(errs.toString), identity)
+
 }
