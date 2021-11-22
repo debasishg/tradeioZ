@@ -69,6 +69,22 @@ object TradingServiceSpec extends DefaultRunnableSpec {
         OrderRepositoryInMemory.layer ++
         ExecutionRepositoryInMemory.layer ++
         TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
+    ),
+    testM("successfully invoke orders") {
+      checkM(Gen.listOfN(5)(frontOfficeOrderGen)) { foOrders =>
+        for {
+          os <- TradingService.orders(NonEmptyList(foOrders.head, foOrders.tail: _*))
+        } yield assert(
+          os.size > 0
+        )(
+          equalTo(true)
+        )
+      }
+    }.provideCustomLayer(
+      (AccountRepositoryInMemory.layer ++
+        OrderRepositoryInMemory.layer ++
+        ExecutionRepositoryInMemory.layer ++
+        TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
     )
   )
 }

@@ -145,4 +145,12 @@ object generators {
     .trade(no, isin, mkt, bs, up, qty, td, vd, Some(uid))
     .fold(errs => throw new Exception(errs.toString), identity)
 
+  val frontOfficeOrderGen = for {
+    ano  <- accountNoGen
+    dt   <- Gen.fromIterable(List(Instant.now, Instant.now.plus(2, java.time.temporal.ChronoUnit.DAYS)))
+    isin <- isinGen
+    qty  <- quantityGen
+    up   <- unitPriceGen
+    bs   <- Gen.fromIterable(BuySell.values)
+  } yield FrontOfficeOrder(ano.value.value, dt, isin.value.value, qty.value.value, up.value.value, bs.entryName)
 }
