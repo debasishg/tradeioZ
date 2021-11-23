@@ -80,6 +80,22 @@ trait TradingService {
       clientAccounts: NonEmptyList[AccountNo],
       userId: UserId
   ): IO[TradingError, NonEmptyList[Trade]]
+
+  def generateTrade(
+      frontOfficeInput: GenerateTradeFrontOfficeInput,
+      userId: UserId
+  ): IO[Throwable, NonEmptyList[Trade]] = {
+
+    for {
+      orders <- orders(frontOfficeInput.frontOfficeOrders)
+      executions <- execute(
+        orders,
+        frontOfficeInput.market,
+        frontOfficeInput.brokerAccountNo
+      )
+      trades <- allocate(executions, frontOfficeInput.clientAccountNos, userId)
+    } yield trades
+  }
 }
 
 object TradingServiceError {
@@ -120,4 +136,10 @@ object TradingService {
       userId: UserId
   ): ZIO[Has[TradingService], TradingError, NonEmptyList[Trade]] =
     ZIO.serviceWith[TradingService](_.allocate(executions, clientAccounts, userId))
+
+  def generateTrade(
+      frontOfficeInput: GenerateTradeFrontOfficeInput,
+      userId: UserId
+  ): ZIO[Has[TradingService], Throwable, NonEmptyList[Trade]] =
+    ZIO.serviceWith[TradingService](_.generateTrade(frontOfficeInput, userId))
 }

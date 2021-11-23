@@ -7,6 +7,7 @@ import eu.timepit.refined.auto._
 import eu.timepit.refined.numeric._
 import eu.timepit.refined.types.string.NonEmptyString
 
+import zio.prelude._
 import zio.random.Random
 import zio.test._
 import zio.test.Gen.fromEffectSample
@@ -153,4 +154,24 @@ object generators {
     up   <- unitPriceGen
     bs   <- Gen.fromIterable(BuySell.values)
   } yield FrontOfficeOrder(ano.value.value, dt, isin.value.value, qty.value.value, up.value.value, bs.entryName)
+
+  def frontOfficeOrderGenWithAccountAndInstrument(accs: List[AccountNo], ins: List[ISINCode]) = for {
+    ano  <- Gen.fromIterable(accs)
+    dt   <- Gen.fromIterable(List(Instant.now, Instant.now.plus(2, java.time.temporal.ChronoUnit.DAYS)))
+    isin <- Gen.fromIterable(ins)
+    qty  <- quantityGen
+    up   <- unitPriceGen
+    bs   <- Gen.fromIterable(BuySell.values)
+  } yield FrontOfficeOrder(ano.value.value, dt, isin.value.value, qty.value.value, up.value.value, bs.entryName)
+
+  def generateTradeFrontOfficeInputGenWithAccountAndInstrument(accs: List[AccountNo], ins: List[ISINCode]) = for {
+    orders       <- Gen.listOfN(3)(frontOfficeOrderGenWithAccountAndInstrument(accs, ins))
+    mkt          <- Gen.fromIterable(Market.values)
+    brkAccountNo <- Gen.fromIterable(accs)
+  } yield GenerateTradeFrontOfficeInput(
+    NonEmptyList(orders.head, orders.tail: _*),
+    mkt,
+    brkAccountNo,
+    NonEmptyList(accs.head, accs.tail: _*)
+  )
 }
