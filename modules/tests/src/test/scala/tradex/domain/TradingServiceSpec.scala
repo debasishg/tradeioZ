@@ -91,7 +91,11 @@ object TradingServiceSpec extends DefaultRunnableSpec {
         checkM(generateTradeFrontOfficeInputGenWithAccountAndInstrument(List(account.no), List(isin))) { foInput =>
           for {
             trades <- TradingService.generateTrade(foInput, userId)
-          } yield assert(trades.size > 0)(equalTo(true))
+          } yield assert(
+            trades.size > 0 && trades.forall(trade => trade.accountNo == account.no && trade.isin == isin)
+          )(
+            equalTo(true)
+          )
         }
       }
     }.provideCustomLayer(
