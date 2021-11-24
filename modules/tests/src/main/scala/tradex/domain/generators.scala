@@ -174,4 +174,10 @@ object generators {
     brkAccountNo,
     NonEmptyList(accs.head, accs.tail: _*)
   )
+
+  def tradeGnerationInputGen = for {
+    a <- accountGen
+    i <- isinGen
+    u <- userIdGen
+  } yield (a, i, u)
 }

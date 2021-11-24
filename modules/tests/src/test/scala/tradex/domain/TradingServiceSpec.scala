@@ -86,16 +86,12 @@ object TradingServiceSpec extends DefaultRunnableSpec {
         ExecutionRepositoryInMemory.layer ++
         TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
     ),
-    testM("successfully generate trades") {
-      checkM(accountGen) { account =>
-        checkM(isinGen) { isin =>
-          checkM(userIdGen) { userId =>
-            checkM(generateTradeFrontOfficeInputGenWithAccountAndInstrument(List(account.no), List(isin))) { foInput =>
-              for {
-                trades <- TradingService.generateTrade(foInput, userId)
-              } yield assert(trades.size > 0)(equalTo(true))
-            }
-          }
+    testM("successfully generate trades from front office input") {
+      checkM(tradeGnerationInputGen) { case (account, isin, userId) =>
+        checkM(generateTradeFrontOfficeInputGenWithAccountAndInstrument(List(account.no), List(isin))) { foInput =>
+          for {
+            trades <- TradingService.generateTrade(foInput, userId)
+          } yield assert(trades.size > 0)(equalTo(true))
         }
       }
     }.provideCustomLayer(
