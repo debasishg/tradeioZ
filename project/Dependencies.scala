@@ -9,6 +9,9 @@ object Dependencies {
   val zioConfigRefined = "dev.zio" %% "zio-config-refined" % zioConfigVersion
   val zioConfigTypesafe = "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
   val zioInteropCats = "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion
+  val zioStreams = "dev.zio" %% "zio-streams" % zioStreamsVersion
+  val zioKafka = "dev.zio" %% "zio-kafka" % zioKafkaVersion
+  val zioJson = "dev.zio" %% "zio-json" % zioJsonVersion
   val flywayDb = "org.flywaydb" % "flyway-core" % flywayDbVersion
   val zioTest = "dev.zio" %% "zio-test" % zioVersion % "test"
   val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion % "test"
@@ -84,7 +87,7 @@ object Dependencies {
 
   import CompilerPlugin._
 
-  val commonDependencies: Seq[ModuleID] = Seq(zio, zioPrelude, zioInteropCats)
+  val commonDependencies: Seq[ModuleID] = Seq(zio, zioPrelude, zioInteropCats, zioStreams, zioKafka)
 
   val tradeioDependencies: Seq[ModuleID] =
     commonDependencies ++ Seq(kindProjector, betterMonadicFor, semanticDB) ++
