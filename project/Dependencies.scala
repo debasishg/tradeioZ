@@ -87,7 +87,7 @@ object Dependencies {
 
   import CompilerPlugin._
 
-  val commonDependencies: Seq[ModuleID] = Seq(zio, zioPrelude, zioInteropCats, zioStreams, zioKafka)
+  val commonDependencies: Seq[ModuleID] = Seq(zio, zioPrelude, zioInteropCats, zioStreams, zioKafka, zioJson)
 
   val tradeioDependencies: Seq[ModuleID] =
     commonDependencies ++ Seq(kindProjector, betterMonadicFor, semanticDB) ++
