@@ -33,12 +33,7 @@ object TradingServiceSpec extends DefaultRunnableSpec {
           equalTo(true)
         )
       }
-    }.provideCustomLayer(
-      (AccountRepositoryInMemory.layer ++
-        OrderRepositoryInMemory.layer ++
-        ExecutionRepositoryInMemory.layer ++
-        TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
-    ),
+    }.provideCustomLayer(TradingServiceTest.layer),
     testM("successfully invoke getTrades") {
       checkM(accountGen) { account =>
         for {
@@ -64,12 +59,7 @@ object TradingServiceSpec extends DefaultRunnableSpec {
             equalTo(true)
           )
         }
-    }.provideCustomLayer(
-      (AccountRepositoryInMemory.layer ++
-        OrderRepositoryInMemory.layer ++
-        ExecutionRepositoryInMemory.layer ++
-        TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
-    ),
+    }.provideCustomLayer(TradingServiceTest.layer),
     testM("successfully invoke orders") {
       checkM(Gen.listOfN(5)(frontOfficeOrderGen)) { foOrders =>
         for {
@@ -80,12 +70,7 @@ object TradingServiceSpec extends DefaultRunnableSpec {
           equalTo(true)
         )
       }
-    }.provideCustomLayer(
-      (AccountRepositoryInMemory.layer ++
-        OrderRepositoryInMemory.layer ++
-        ExecutionRepositoryInMemory.layer ++
-        TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
-    ),
+    }.provideCustomLayer(TradingServiceTest.layer),
     testM("successfully generate trades from front office input") {
       checkM(tradeGnerationInputGen) { case (account, isin, userId) =>
         checkM(generateTradeFrontOfficeInputGenWithAccountAndInstrument(List(account.no), List(isin))) { foInput =>
@@ -98,17 +83,12 @@ object TradingServiceSpec extends DefaultRunnableSpec {
           )
         }
       }
-    }.provideCustomLayer(
-      (AccountRepositoryInMemory.layer ++
-        OrderRepositoryInMemory.layer ++
-        ExecutionRepositoryInMemory.layer ++
-        TradeRepositoryInMemory.layer) >+> TradingServiceTest.layer
-    )
+    }.provideCustomLayer(TradingServiceTest.layer)
   )
 }
 
 object TradingServiceTest {
-  val layer: URLayer[Has[AccountRepository] with Has[
+  val serviceLayer: URLayer[Has[AccountRepository] with Has[
     OrderRepository
   ] with Has[
     ExecutionRepository
@@ -117,4 +97,9 @@ object TradingServiceTest {
   ], Has[TradingService]] = {
     (TradingServiceLive(_, _, _, _)).toLayer
   }
+  val layer =
+    (AccountRepositoryInMemory.layer ++
+      OrderRepositoryInMemory.layer ++
+      ExecutionRepositoryInMemory.layer ++
+      TradeRepositoryInMemory.layer) >+> serviceLayer
 }
