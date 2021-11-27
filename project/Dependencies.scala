@@ -3,18 +3,19 @@ import Keys._
 import Versions._
 
 object Dependencies {
-  val zio = "dev.zio" %% "zio" % zioVersion
-  val zioPrelude = "dev.zio" %% "zio-prelude" % zioPreludeVersion
-  val zioConfig = "dev.zio" %% "zio-config" % zioConfigVersion
-  val zioConfigRefined = "dev.zio" %% "zio-config-refined" % zioConfigVersion
-  val zioConfigTypesafe = "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
-  val zioInteropCats = "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion
-  val zioStreams = "dev.zio" %% "zio-streams" % zioStreamsVersion
-  val zioKafka = "dev.zio" %% "zio-kafka" % zioKafkaVersion
-  val zioJson = "dev.zio" %% "zio-json" % zioJsonVersion
-  val flywayDb = "org.flywaydb" % "flyway-core" % flywayDbVersion
-  val zioTest = "dev.zio" %% "zio-test" % zioVersion % "test"
-  val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion % "test"
+  object Zio {
+    val zio = "dev.zio" %% "zio" % zioVersion
+    val zioPrelude = "dev.zio" %% "zio-prelude" % zioPreludeVersion
+    val zioConfig = "dev.zio" %% "zio-config" % zioConfigVersion
+    val zioConfigRefined = "dev.zio" %% "zio-config-refined" % zioConfigVersion
+    val zioConfigTypesafe = "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
+    val zioInteropCats = "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion
+    val zioStreams = "dev.zio" %% "zio-streams" % zioStreamsVersion
+    val zioKafka = "dev.zio" %% "zio-kafka" % zioKafkaVersion
+    val zioJson = "dev.zio" %% "zio-json" % zioJsonVersion
+    val zioTest = "dev.zio" %% "zio-test" % zioVersion % "test"
+    val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion % "test"
+  }
 
   // Scalafix rules
   val organizeImports = "com.github.liancheng" %% "organize-imports" % organizeImportsVersion
@@ -24,13 +25,13 @@ object Dependencies {
   def http4s(artifact: String): ModuleID    = "org.http4s"        %% s"http4s-$artifact"    % http4sVersion
   def cormorant(artifact: String): ModuleID = "io.chrisdavenport" %% s"cormorant-$artifact" % cormorantVersion
 
-
   object Misc {
     val newtype      = "io.estatico"             %% "newtype"        % newtypeVersion
     val squants      = "org.typelevel"           %% "squants"        % squantsVersion
     val fs2Core      = "co.fs2"                  %% "fs2-core"       % fs2Version
     val fs2IO        = "co.fs2"                  %% "fs2-io"         % fs2Version
     val pureconfig   = "com.github.pureconfig"   %% "pureconfig"     % pureconfigVersion
+    val flywayDb     = "org.flywaydb"             % "flyway-core"    % flywayDbVersion
   }
 
   object Refined {
@@ -87,11 +88,11 @@ object Dependencies {
 
   import CompilerPlugin._
 
-  val commonDependencies: Seq[ModuleID] = Seq(zio, zioPrelude, zioInteropCats, zioStreams, zioKafka, zioJson)
+  val commonDependencies: Seq[ModuleID] = Seq(Zio.zio, Zio.zioPrelude, Zio.zioInteropCats, Zio.zioStreams, Zio.zioKafka, Zio.zioJson)
 
   val tradeioDependencies: Seq[ModuleID] =
     commonDependencies ++ Seq(kindProjector, betterMonadicFor, semanticDB) ++
-      Seq(Misc.newtype, Misc.squants, Misc.pureconfig) ++ Seq(logback) ++ Seq(flywayDb) ++
+      Seq(Misc.newtype, Misc.squants, Misc.pureconfig) ++ Seq(logback) ++ Seq(Misc.flywayDb) ++
       Seq(Derevo.derevoCore, Derevo.derevoCiris, Derevo.derevoCirceMagnolia) ++
       Seq(Refined.refinedCore, Refined.refinedCats, Refined.refinedShapeless) ++
       Seq(Ciris.cirisCore, Ciris.cirisEnum, Ciris.cirisRefined, Ciris.cirisCirce, Ciris.cirisSquants) ++
@@ -99,5 +100,5 @@ object Dependencies {
       Seq(Doobie.doobieCore, Doobie.doobieHikari, Doobie.doobiePostgres, Doobie.doobieH2, Doobie.doobieEnumeratum)
 
   val testDependencies: Seq[ModuleID] =
-    Seq(zioTest, zioTestSbt)
+    Seq(Zio.zioTest, Zio.zioTestSbt)
 }
