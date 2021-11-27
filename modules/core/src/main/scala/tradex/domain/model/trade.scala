@@ -16,12 +16,17 @@ import order._
 import market._
 import user.UserId
 import io.estatico.newtype.macros.newtype
+import derevo.circe.magnolia._
+import derevo.derive
 
 object trade {
+  @derive(decoder, encoder)
   @newtype case class TradeReferenceNo(value: UUID)
 
+  @derive(decoder, encoder)
   sealed abstract class TaxFeeId(override val entryName: String) extends EnumEntry
 
+  @derive(decoder, encoder)
   object TaxFeeId extends Enum[TaxFeeId] {
     case object TradeTax   extends TaxFeeId("TradeTax")
     case object Commission extends TaxFeeId("Commission")
@@ -31,6 +36,7 @@ object trade {
     val values = findValues
   }
 
+  @derive(decoder, encoder)
   final case class GenerateTradeFrontOfficeInput(
       frontOfficeOrders: NonEmptyList[FrontOfficeOrder],
       market: Market,
@@ -83,6 +89,7 @@ object trade {
     principal(trade) + taxFeeAmounts.map(_.amount).foldLeft(Money(0))(_ + _)
   }
 
+  @derive(decoder, encoder)
   final case class Trade private (
       accountNo: AccountNo,
       isin: ISINCode,
@@ -98,6 +105,7 @@ object trade {
       tradeRefNo: Option[TradeReferenceNo] = None
   )
 
+  @derive(decoder, encoder)
   private[domain] final case class TradeTaxFee(
       taxFeeId: TaxFeeId,
       amount: Money

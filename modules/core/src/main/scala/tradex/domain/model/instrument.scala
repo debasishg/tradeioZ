@@ -18,6 +18,9 @@ import eu.timepit.refined.collection._
 import eu.timepit.refined.boolean.AllOf
 import eu.timepit.refined.types.string.NonEmptyString
 import eu.timepit.refined.auto._
+import derevo.circe.magnolia._
+import derevo.derive
+import io.circe.refined._
 
 import model.order.UnitPrice
 
@@ -32,15 +35,20 @@ object instrument {
       HNil
   ]
 
+  @derive(decoder, encoder)
   @newtype case class ISINCode(value: ISINCodeString)
 
+  @derive(decoder, encoder)
   @newtype case class InstrumentName(value: NonEmptyString)
 
   type LotSizeType = Int Refined Positive
+  @derive(decoder, encoder)
   @newtype case class LotSize(value: LotSizeType)
 
+  @derive(decoder, encoder)
   sealed abstract class InstrumentType(override val entryName: String) extends EnumEntry
 
+  @derive(decoder, encoder)
   object InstrumentType extends Enum[InstrumentType] {
     case object CCY         extends InstrumentType("ccy")
     case object Equity      extends InstrumentType("equity")
@@ -49,6 +57,7 @@ object instrument {
     val values = findValues
   }
 
+  @derive(decoder, encoder)
   final case class Instrument private (
       isinCode: ISINCode,
       name: InstrumentName,
@@ -61,6 +70,7 @@ object instrument {
       couponFrequency: Option[BigDecimal] // for Fixed Income
   )
 
+  @derive(decoder, encoder)
   final case class CreateInstrument private (
       isinCode: String,
       name: String,

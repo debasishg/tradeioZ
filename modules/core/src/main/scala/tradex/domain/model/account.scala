@@ -12,12 +12,16 @@ import enumeratum._
 
 import io.estatico.newtype.macros.newtype
 
+import derevo.derive
+import derevo.circe.magnolia._
 import eu.timepit.refined._
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.collection._
 import eu.timepit.refined.boolean.AllOf
 import eu.timepit.refined.types.string.NonEmptyString
 import eu.timepit.refined.auto._
+
+import io.circe.refined._
 
 import _root_.shapeless.::
 import _root_.shapeless.HNil
@@ -29,12 +33,16 @@ object account {
       HNil
   ]
 
+  @derive(decoder, encoder)
   @newtype case class AccountNo(value: AccountNoString)
 
+  @derive(decoder, encoder)
   @newtype case class AccountName(value: NonEmptyString)
 
+  @derive(decoder, encoder)
   sealed abstract class AccountType(override val entryName: String) extends EnumEntry
 
+  @derive(decoder, encoder)
   object AccountType extends Enum[AccountType] {
     case object Trading    extends AccountType("Trading")
     case object Settlement extends AccountType("Settlement")
@@ -43,6 +51,7 @@ object account {
     val values = findValues
   }
 
+  @derive(decoder, encoder)
   final case class Account private (
       no: AccountNo,
       name: AccountName,
@@ -54,6 +63,7 @@ object account {
       settlementCurrency: Option[Currency]
   )
 
+  @derive(decoder, encoder)
   case class CreateAccount(
       no: String,
       name: String,

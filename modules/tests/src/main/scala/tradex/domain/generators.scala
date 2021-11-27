@@ -1,11 +1,8 @@
 package tradex.domain
 
 import java.time._
-import eu.timepit.refined._
-import eu.timepit.refined.api.{ RefType, Refined }
+import eu.timepit.refined.api.RefType
 import eu.timepit.refined.auto._
-import eu.timepit.refined.numeric._
-import eu.timepit.refined.types.string.NonEmptyString
 
 import zio.prelude._
 import zio.random.Random

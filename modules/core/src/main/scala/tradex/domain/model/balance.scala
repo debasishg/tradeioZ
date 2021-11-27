@@ -3,10 +3,13 @@ package model
 
 import java.time.LocalDateTime
 import zio.prelude._
+import derevo.circe.magnolia._
+import derevo.derive
 import squants.market._
 import account._
 
 object balance {
+  @derive(decoder, encoder)
   final case class Balance private (
       accountNo: AccountNo,
       amount: Money,

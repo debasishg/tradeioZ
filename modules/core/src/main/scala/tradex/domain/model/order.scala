@@ -15,18 +15,26 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric._
 import eu.timepit.refined.types.string.NonEmptyString
 import eu.timepit.refined.auto._
+import derevo.circe.magnolia._
+import derevo.derive
+import io.circe.refined._
 
 object order {
+  @derive(decoder, encoder)
   @newtype case class OrderNo(value: NonEmptyString)
 
   type QuantityType = BigDecimal Refined NonNegative
+  @derive(decoder, encoder)
   @newtype case class Quantity(value: BigDecimal Refined NonNegative)
 
   type UnitPriceType = BigDecimal Refined Positive
+  @derive(decoder, encoder)
   @newtype case class UnitPrice(value: UnitPriceType)
 
+  @derive(decoder, encoder)
   sealed abstract class BuySell(override val entryName: String) extends EnumEntry
 
+  @derive(decoder, encoder)
   object BuySell extends Enum[BuySell] {
     case object Buy  extends BuySell("buy")
     case object Sell extends BuySell("sell")
@@ -35,6 +43,7 @@ object order {
   }
 
   // domain entity
+  @derive(decoder, encoder)
   private[domain] final case class LineItem private (
       orderNo: OrderNo,
       instrument: ISINCode,
@@ -43,6 +52,7 @@ object order {
       buySell: BuySell
   )
 
+  @derive(decoder, encoder)
   final case class Order private (
       no: OrderNo,
       date: LocalDateTime,
@@ -50,6 +60,7 @@ object order {
       items: NonEmptyList[LineItem]
   )
 
+  @derive(decoder, encoder)
   final case class FrontOfficeOrder private (
       accountNo: String,
       date: Instant,

@@ -10,12 +10,15 @@ import order._
 import market._
 import java.time.LocalDateTime
 import io.estatico.newtype.macros.newtype
+import derevo.circe.magnolia._
+import derevo.derive
 
 object execution {
-  @newtype
-  case class ExecutionReferenceNo(value: UUID)
+  @derive(decoder, encoder)
+  @newtype case class ExecutionReferenceNo(value: UUID)
 
   // primary domain entity for execution from exchange
+  @derive(decoder, encoder)
   final case class Execution private (
       accountNo: AccountNo,
       orderNo: OrderNo,
