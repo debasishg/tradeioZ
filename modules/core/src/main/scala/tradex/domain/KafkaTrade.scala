@@ -1,12 +1,17 @@
 package tradex.domain
 
+import org.apache.kafka.clients.producer._
+import java.util.UUID
+
 import zio._
 import zio.console.Console
-import zio.kafka.serde._
+import zio.kafka.serde.Serde
 import zio.clock.Clock
 import zio.blocking.Blocking
 import zio.kafka.consumer._
+import zio.kafka.producer.{ Producer, ProducerSettings }
 import zio.stream._
+import zio.duration.durationInt
 
 import io.circe._
 import io.circe.generic.auto._
@@ -48,6 +53,29 @@ object KafkaTrade extends zio.App {
       .aggregateAsync(Consumer.offsetBatches)
       .run(ZSink.foreach(_.commit))
 
-  def run(args: List[String]): zio.URIO[zio.ZEnv, zio.ExitCode] =
-    matchesStreams.provideSomeLayer(consumer ++ zio.console.Console.live).exitCode
+  val producerSettings: ProducerSettings = ProducerSettings(List("localhost:9092"))
+
+  val producer: ZLayer[Blocking, Throwable, Has[Producer]] =
+    ZLayer.fromManaged(
+      Producer.make(producerSettings)
+    )
+
+  val foTrade: GenerateTradeFrontOfficeInput = null
+  val messagesToSend: ProducerRecord[UUID, GenerateTradeFrontOfficeInput] =
+    new ProducerRecord(
+      "updates",
+      UUID.fromString("b91a7348-f9f0-4100-989a-cbdd2a198096"),
+      foTrade
+    )
+
+  val producerEffect: RIO[Any with Has[Producer], RecordMetadata] =
+    Producer.produce[Any, UUID, GenerateTradeFrontOfficeInput](messagesToSend, Serde.uuid, foTradeSerde)
+
+  def run(args: List[String]): zio.URIO[zio.ZEnv, zio.ExitCode] = {
+    val program = for {
+      _ <- matchesStreams.provideSomeLayer(consumer ++ zio.console.Console.live).fork
+      _ <- producerEffect.provideSomeLayer(producer) *> ZIO.sleep(5.seconds)
+    } yield ()
+    program.exitCode
+  }
 }
