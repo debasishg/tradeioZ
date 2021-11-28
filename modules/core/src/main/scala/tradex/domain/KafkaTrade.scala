@@ -43,7 +43,7 @@ object KafkaTrade extends zio.App {
   val consumer: ZLayer[Clock with Blocking, Throwable, Has[Consumer]] =
     ZLayer.fromManaged(managedConsumer)
 
-  val matchesStreams: ZIO[Console with Any with Has[Consumer] with Clock, Throwable, Unit] =
+  val foTradesStreams: ZIO[Console with Any with Has[Consumer] with Clock, Throwable, Unit] =
     Consumer
       .subscribeAnd(Subscription.topics("updates"))
       .plainStream(Serde.uuid, foTradeSerde)
@@ -73,7 +73,7 @@ object KafkaTrade extends zio.App {
 
   def run(args: List[String]): zio.URIO[zio.ZEnv, zio.ExitCode] = {
     val program = for {
-      _ <- matchesStreams.provideSomeLayer(consumer ++ zio.console.Console.live).fork
+      _ <- foTradesStreams.provideSomeLayer(consumer ++ zio.console.Console.live).fork
       _ <- producerEffect.provideSomeLayer(producer) *> ZIO.sleep(5.seconds)
     } yield ()
     program.exitCode
