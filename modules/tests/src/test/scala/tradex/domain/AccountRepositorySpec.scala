@@ -24,9 +24,7 @@ object AccountRepositorySpec extends DefaultRunnableSpec {
         for {
           stored  <- AccountRepository.store(account)
           fetched <- AccountRepository.queryByAccountNo(stored.no)
-        } yield assert(stored.no == fetched.get.no)(
-          equalTo(true)
-        )
+        } yield assertTrue(stored.no == fetched.get.no)
       }
     }.provideCustomLayer(AccountRepositoryInMemory.layer),
     testM("successfully stores multiple accounts") {
@@ -34,9 +32,7 @@ object AccountRepositorySpec extends DefaultRunnableSpec {
         for {
           _           <- AccountRepository.store(accounts)
           allAccounts <- AccountRepository.all
-        } yield assert(allAccounts.forall(_.name.value.value.startsWith("debasish")))(
-          equalTo(true)
-        )
+        } yield assertTrue(allAccounts.forall(_.name.value.value.startsWith("debasish")))
       }
     }.provideCustomLayer(AccountRepositoryInMemory.layer)
   )

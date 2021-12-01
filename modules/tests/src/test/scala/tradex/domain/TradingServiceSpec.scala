@@ -14,6 +14,10 @@ import repository.inmemory._
 import services.trading._
 import java.time._
 
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
+
 object TradingServiceSpec extends DefaultRunnableSpec {
   val localDateZERO = LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC)
   val spec = suite("Trading Service")(
@@ -27,10 +31,8 @@ object TradingServiceSpec extends DefaultRunnableSpec {
             accounts.map(_.copy(dateOfOpen = dt))
           )
           fetched <- TradingService.getAccountsOpenedOn(dt.toLocalDate())
-        } yield assert(
+        } yield assertTrue(
           fetched.forall(_.dateOfOpen.toLocalDate() == dt.toLocalDate())
-        )(
-          equalTo(true)
         )
       }
     }.provideCustomLayer(TradingServiceTest.layer),
@@ -53,10 +55,8 @@ object TradingServiceSpec extends DefaultRunnableSpec {
               NonEmptyList(tradesTodayForAccount.head, tradesTodayForAccount.tail: _*)
             )
             fetched <- TradingService.getTrades(accs.head.no, Some(dt.toLocalDate()))
-          } yield assert(
+          } yield assertTrue(
             fetched.forall(_.tradeDate.toLocalDate() == dt.toLocalDate())
-          )(
-            equalTo(true)
           )
         }
     }.provideCustomLayer(TradingServiceTest.layer),
@@ -64,23 +64,20 @@ object TradingServiceSpec extends DefaultRunnableSpec {
       checkM(Gen.listOfN(5)(frontOfficeOrderGen)) { foOrders =>
         for {
           os <- TradingService.orders(NonEmptyList(foOrders.head, foOrders.tail: _*))
-        } yield assert(
+        } yield assertTrue(
           os.size > 0
-        )(
-          equalTo(true)
         )
       }
     }.provideCustomLayer(TradingServiceTest.layer),
     testM("successfully generate trades from front office input") {
       checkM(tradeGnerationInputGen) { case (account, isin, userId) =>
         checkM(generateTradeFrontOfficeInputGenWithAccountAndInstrument(List(account.no), List(isin))) { foInput =>
-          for {
-            trades <- TradingService.generateTrade(foInput, userId)
-          } yield assert(
-            trades.size > 0 && trades.forall(trade => trade.accountNo == account.no && trade.isin == isin)
-          )(
-            equalTo(true)
-          )
+          ZIO.succeed(println(foInput.asJson.printWith(Printer.noSpaces))) *>
+            (for {
+              trades <- TradingService.generateTrade(foInput, userId)
+            } yield assertTrue(
+              trades.size > 0 && trades.forall(trade => trade.accountNo == account.no && trade.isin == isin)
+            ))
         }
       }
     }.provideCustomLayer(TradingServiceTest.layer)
