@@ -81,7 +81,16 @@ trait TradingService {
       userId: UserId
   ): IO[TradingError, NonEmptyList[Trade]]
 
-  def generateTrade(
+  /** Workflow to generate trades from `frontOfficeInput`
+    *
+    * @param frontOfficeInput
+    *   the front office input to generate trade from
+    * @param userId
+    *   the userid generating the trade
+    * @return
+    *   a list of `Trade`
+    */
+  final def generateTrade(
       frontOfficeInput: GenerateTradeFrontOfficeInput,
       userId: UserId
   ): IO[Throwable, NonEmptyList[Trade]] = {

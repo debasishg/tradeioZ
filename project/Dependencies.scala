@@ -6,6 +6,7 @@ object Dependencies {
   object Zio {
     val zio = "dev.zio" %% "zio" % zioVersion
     val zioPrelude = "dev.zio" %% "zio-prelude" % zioPreludeVersion
+    val zioQuery = "dev.zio" %% "zio-query" % zioQueryVersion
     val zioConfig = "dev.zio" %% "zio-config" % zioConfigVersion
     val zioConfigRefined = "dev.zio" %% "zio-config-refined" % zioConfigVersion
     val zioConfigTypesafe = "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
@@ -88,7 +89,7 @@ object Dependencies {
 
   import CompilerPlugin._
 
-  val commonDependencies: Seq[ModuleID] = Seq(Zio.zio, Zio.zioPrelude, Zio.zioInteropCats, Zio.zioStreams, Zio.zioKafka, Zio.zioJson)
+  val commonDependencies: Seq[ModuleID] = Seq(Zio.zio, Zio.zioPrelude, Zio.zioInteropCats, Zio.zioStreams, Zio.zioKafka, Zio.zioJson, Zio.zioQuery)
 
   val tradeioDependencies: Seq[ModuleID] =
     commonDependencies ++ Seq(kindProjector, betterMonadicFor, semanticDB) ++
