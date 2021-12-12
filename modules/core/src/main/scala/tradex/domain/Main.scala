@@ -43,18 +43,9 @@ object Program {
       frontOfficeInput: GenerateTradeFrontOfficeInput,
       userId: UserId
   ): ZIO[Blocking, Throwable, (NonEmptyList[Trade], NonEmptyList[Balance])] = {
-
-    val action = for {
-      orders <- orders(frontOfficeInput.frontOfficeOrders)
-      executions <- execute(
-        orders,
-        frontOfficeInput.market,
-        frontOfficeInput.brokerAccountNo
-      )
-      trades   <- allocate(executions, frontOfficeInput.clientAccountNos, userId)
+    (for {
+      trades   <- generateTrade(frontOfficeInput, userId)
       balances <- postBalance(trades)
-    } yield (trades, balances)
-
-    action.provideLayer(Application.prod.appLayer)
+    } yield (trades, balances)).provideLayer(Application.prod.appLayer)
   }
 }
