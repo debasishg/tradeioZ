@@ -36,6 +36,9 @@ final case class TradingServiceLive(
     )
   }
 
+  def getTradesByISINCodes(forDate: LocalDate, isins: Set[model.instrument.ISINCode]): IO[TradingError, List[Trade]] =
+    ???
+
   def orders(
       frontOfficeOrders: NonEmptyList[FrontOfficeOrder]
   ): IO[TradingError, NonEmptyList[Order]] = {

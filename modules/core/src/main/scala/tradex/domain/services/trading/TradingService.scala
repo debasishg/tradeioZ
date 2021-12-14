@@ -38,6 +38,8 @@ trait TradingService {
       forDate: Option[LocalDate] = None
   ): IO[TradingError, List[Trade]]
 
+  def getTradesByISINCodes(forDate: LocalDate, isins: Set[model.instrument.ISINCode]): IO[TradingError, List[Trade]]
+
   /** Create a list of `Order` from client orders that come from the front office.
     *
     * @param frontOfficeOrders
@@ -126,6 +128,12 @@ object TradingService {
       forDate: Option[LocalDate] = None
   ): ZIO[Has[TradingService], TradingError, List[Trade]] =
     ZIO.serviceWith[TradingService](_.getTrades(forAccountNo, forDate))
+
+  def getTradesByISINCodes(
+      forDate: LocalDate,
+      isins: Set[model.instrument.ISINCode]
+  ): ZIO[Has[TradingService], TradingError, List[Trade]] =
+    ZIO.serviceWith[TradingService](_.getTradesByISINCodes(forDate, isins))
 
   def orders(
       frontOfficeOrders: NonEmptyList[FrontOfficeOrder]

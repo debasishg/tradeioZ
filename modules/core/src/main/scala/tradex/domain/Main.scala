@@ -15,6 +15,10 @@ import model.account._
 import model.trade._
 import model.user._
 import model.balance._
+import model.instrument._
+import zio.query.DataSource
+import zio.query.Request
+import zio.query.ZQuery
 
 object Main extends zio.App {
   def run(args: List[String]): zio.URIO[zio.ZEnv, zio.ExitCode] = {
@@ -47,5 +51,21 @@ object Program {
       trades   <- generateTrade(frontOfficeInput, userId)
       balances <- postBalance(trades)
     } yield (trades, balances)).provideLayer(Application.prod.appLayer)
+  }
+}
+
+object QueryProgram {
+  def queryTrades(
+      forDate: LocalDate,
+      isins: Set[ISINCode]
+  ): ZQuery[Has[TradingService], TradingError, List[Trade]] = {
+    case class GetTradesByInstruments(date: LocalDate, isins: NonEmptyChunk[ISINCode])
+        extends Request[TradingError, List[Trade]]
+
+    val ds: DataSource[Has[TradingService], GetTradesByInstruments] =
+      DataSource.fromFunctionBatchedM(
+        "TradesByInstruments"
+      )(requests => ZIO.foreach(requests)(request => getTradesByISINCodes(request.date, request.isins.toSet)))
+    ZQuery.fromRequest(GetTradesByInstruments(forDate, NonEmptyChunk(isins.head, isins.tail.toSeq: _*)))(ds)
   }
 }
