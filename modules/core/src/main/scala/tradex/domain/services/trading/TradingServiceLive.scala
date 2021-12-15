@@ -22,13 +22,13 @@ final case class TradingServiceLive(
 ) extends TradingService {
 
   def getAccountsOpenedOn(openDate: LocalDate): IO[TradingError, List[Account]] =
-    withTradingService(ar.allOpenedOn(openDate))
+    withTradeRepositoryService(ar.allOpenedOn(openDate))
 
   def getTrades(
       forAccountNo: AccountNo,
       forDate: Option[LocalDate] = None
   ): IO[TradingError, List[Trade]] = {
-    withTradingService(
+    withTradeRepositoryService(
       tr.queryTradeByAccountNo(
         forAccountNo,
         forDate.getOrElse(today.toLocalDate())
@@ -36,13 +36,22 @@ final case class TradingServiceLive(
     )
   }
 
-  def getTradesByISINCodes(forDate: LocalDate, isins: Set[model.instrument.ISINCode]): IO[TradingError, List[Trade]] =
-    ???
+  def getTradesByISINCodes(
+      forDate: LocalDate,
+      forIsins: Set[model.instrument.ISINCode]
+  ): IO[TradingError, List[Trade]] = {
+    withTradeRepositoryService(
+      tr.queryTradesByISINCodes(
+        forDate,
+        forIsins
+      )
+    )
+  }
 
   def orders(
       frontOfficeOrders: NonEmptyList[FrontOfficeOrder]
   ): IO[TradingError, NonEmptyList[Order]] = {
-    withTradingService(
+    withTradeRepositoryService(
       Order
         .create(frontOfficeOrders)
         .fold(
@@ -66,7 +75,7 @@ final case class TradingServiceLive(
       item  <- order.items
     } yield (order, item)
 
-    withTradingService {
+    withTradeRepositoryService {
       for {
         executions <- ois.forEach { case (order, lineItem) =>
           IO.succeed(
@@ -97,7 +106,7 @@ final case class TradingServiceLive(
       accountNo <- clientAccounts
     } yield (accountNo, execution)
 
-    withTradingService {
+    withTradeRepositoryService {
       for {
         tradesNoTaxFee <- anoExes.forEach { case (accountNo, execution) =>
           val q = execution.quantity.value.value / clientAccounts.size
@@ -124,7 +133,7 @@ final case class TradingServiceLive(
     }
   }
 
-  private def withTradingService[A](t: Task[A]): IO[TradingError, A] =
+  private def withTradeRepositoryService[A](t: Task[A]): IO[TradingError, A] =
     t.foldM(
       error => IO.fail(TradeGenerationError(error.getMessage)),
       success => IO.succeed(success)

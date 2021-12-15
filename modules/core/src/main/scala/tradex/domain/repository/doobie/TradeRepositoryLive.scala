@@ -59,6 +59,11 @@ final case class TradeRepositoryLive(xa: Transactor[Task]) extends TradeReposito
       .transact(xa)
       .orDie
 
+  def queryTradesByISINCodes(
+      forDate: LocalDate,
+      forIsins: Set[ISINCode]
+  ): Task[List[Trade]] = ???
+
   def allTrades: Task[List[Trade]] =
     SQL.getAllTrades
       .to[List]

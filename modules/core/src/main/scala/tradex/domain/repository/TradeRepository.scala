@@ -8,6 +8,7 @@ import zio.prelude.NonEmptyList
 import model.account._
 import model.trade._
 import model.market._
+import model.instrument._
 
 trait TradeRepository {
 
@@ -16,6 +17,12 @@ trait TradeRepository {
 
   /** query by market */
   def queryTradeByMarket(market: Market): Task[List[Trade]]
+
+  /** Find the list of trades executed on the specified date and for the specified instruments. */
+  def queryTradesByISINCodes(
+      forDate: LocalDate,
+      forIsins: Set[ISINCode]
+  ): Task[List[Trade]]
 
   /** query all trades */
   def allTrades: Task[List[Trade]]
@@ -33,6 +40,12 @@ object TradeRepository {
 
   def queryTradeByMarket(market: Market): RIO[Has[TradeRepository], List[Trade]] =
     ZIO.serviceWith[TradeRepository](_.queryTradeByMarket(market))
+
+  def queryTradesByISINCodes(
+      forDate: LocalDate,
+      forIsins: Set[ISINCode]
+  ): RIO[Has[TradeRepository], List[Trade]] =
+    ZIO.serviceWith[TradeRepository](_.queryTradesByISINCodes(forDate, forIsins))
 
   def allTrades: RIO[Has[TradeRepository], List[Trade]] =
     ZIO.serviceWith[TradeRepository](_.allTrades)

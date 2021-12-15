@@ -7,6 +7,7 @@ import java.time._
 import model.trade._
 import model.account._
 import model.market._
+import model.instrument._
 import repository.TradeRepository
 
 final case class TradeRepositoryInMemory(state: Ref[Map[TradeReferenceNo, Trade]]) extends TradeRepository {
@@ -16,6 +17,11 @@ final case class TradeRepositoryInMemory(state: Ref[Map[TradeReferenceNo, Trade]
 
   def queryTradeByMarket(market: Market): Task[List[Trade]] =
     state.get.map(_.values.filter(_.market == market).toList)
+
+  def queryTradesByISINCodes(
+      forDate: LocalDate,
+      forIsins: Set[ISINCode]
+  ): Task[List[Trade]] = ???
 
   def allTrades: Task[List[Trade]] = state.get.map(_.values.toList)
 
