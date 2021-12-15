@@ -20,7 +20,7 @@ trait TradingService {
     * @param openDate
     *   the date when account was opened
     * @return
-    *   a list of `Account` under the effect `F`
+    *   a list of `Account` under the effect `IO`
     */
   def getAccountsOpenedOn(openDate: LocalDate): IO[TradingError, List[Account]]
 
@@ -31,14 +31,26 @@ trait TradingService {
     * @param forDate
     *   the trade date
     * @return
-    *   a list of `Trade` under the effect `F`
+    *   a list of `Trade` under the effect `IO`
     */
   def getTrades(
       forAccountNo: AccountNo,
       forDate: Option[LocalDate] = None
   ): IO[TradingError, List[Trade]]
 
-  def getTradesByISINCodes(forDate: LocalDate, isins: Set[model.instrument.ISINCode]): IO[TradingError, List[Trade]]
+  /** Find the list of trades executed on the specified date and for the specified instruments.
+    *
+    * @param forDate
+    *   the trade date
+    * @param forIsins
+    *   the instruments
+    * @return
+    *   a list of `Trade` under the effect `IO`
+    */
+  def getTradesByISINCodes(
+      forDate: LocalDate,
+      forIsins: Set[model.instrument.ISINCode]
+  ): IO[TradingError, List[Trade]]
 
   /** Create a list of `Order` from client orders that come from the front office.
     *
