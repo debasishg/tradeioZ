@@ -85,13 +85,16 @@ object TradingServiceSpec extends DefaultRunnableSpec {
 }
 
 object TradingServiceTest {
-  val serviceLayer: URLayer[Has[AccountRepository] with Has[
-    OrderRepository
-  ] with Has[
-    ExecutionRepository
-  ] with Has[
-    TradeRepository
-  ], Has[TradingService]] = {
+  val serviceLayer: URLayer[Has[AccountRepository]
+    with Has[
+      OrderRepository
+    ]
+    with Has[
+      ExecutionRepository
+    ]
+    with Has[
+      TradeRepository
+    ], Has[TradingService]] = {
     (TradingServiceLive(_, _, _, _)).toLayer
   }
   val layer =

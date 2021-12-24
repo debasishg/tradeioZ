@@ -4,18 +4,18 @@ import Versions._
 
 object Dependencies {
   object Zio {
-    val zio = "dev.zio" %% "zio" % zioVersion
-    val zioPrelude = "dev.zio" %% "zio-prelude" % zioPreludeVersion
-    val zioQuery = "dev.zio" %% "zio-query" % zioQueryVersion
-    val zioConfig = "dev.zio" %% "zio-config" % zioConfigVersion
-    val zioConfigRefined = "dev.zio" %% "zio-config-refined" % zioConfigVersion
+    val zio               = "dev.zio" %% "zio"                 % zioVersion
+    val zioPrelude        = "dev.zio" %% "zio-prelude"         % zioPreludeVersion
+    val zioQuery          = "dev.zio" %% "zio-query"           % zioQueryVersion
+    val zioConfig         = "dev.zio" %% "zio-config"          % zioConfigVersion
+    val zioConfigRefined  = "dev.zio" %% "zio-config-refined"  % zioConfigVersion
     val zioConfigTypesafe = "dev.zio" %% "zio-config-typesafe" % zioConfigVersion
-    val zioInteropCats = "dev.zio" %% "zio-interop-cats" % zioInteropCatsVersion
-    val zioStreams = "dev.zio" %% "zio-streams" % zioStreamsVersion
-    val zioKafka = "dev.zio" %% "zio-kafka" % zioKafkaVersion
-    val zioJson = "dev.zio" %% "zio-json" % zioJsonVersion
-    val zioTest = "dev.zio" %% "zio-test" % zioVersion % "test"
-    val zioTestSbt = "dev.zio" %% "zio-test-sbt" % zioVersion % "test"
+    val zioInteropCats    = "dev.zio" %% "zio-interop-cats"    % zioInteropCatsVersion
+    val zioStreams        = "dev.zio" %% "zio-streams"         % zioStreamsVersion
+    val zioKafka          = "dev.zio" %% "zio-kafka"           % zioKafkaVersion
+    val zioJson           = "dev.zio" %% "zio-json"            % zioJsonVersion
+    val zioTest           = "dev.zio" %% "zio-test"            % zioVersion % "test"
+    val zioTestSbt        = "dev.zio" %% "zio-test-sbt"        % zioVersion % "test"
   }
 
   // Scalafix rules
@@ -27,12 +27,12 @@ object Dependencies {
   def cormorant(artifact: String): ModuleID = "io.chrisdavenport" %% s"cormorant-$artifact" % cormorantVersion
 
   object Misc {
-    val newtype      = "io.estatico"             %% "newtype"        % newtypeVersion
-    val squants      = "org.typelevel"           %% "squants"        % squantsVersion
-    val fs2Core      = "co.fs2"                  %% "fs2-core"       % fs2Version
-    val fs2IO        = "co.fs2"                  %% "fs2-io"         % fs2Version
-    val pureconfig   = "com.github.pureconfig"   %% "pureconfig"     % pureconfigVersion
-    val flywayDb     = "org.flywaydb"             % "flyway-core"    % flywayDbVersion
+    val newtype    = "io.estatico"           %% "newtype"     % newtypeVersion
+    val squants    = "org.typelevel"         %% "squants"     % squantsVersion
+    val fs2Core    = "co.fs2"                %% "fs2-core"    % fs2Version
+    val fs2IO      = "co.fs2"                %% "fs2-io"      % fs2Version
+    val pureconfig = "com.github.pureconfig" %% "pureconfig"  % pureconfigVersion
+    val flywayDb   = "org.flywaydb"           % "flyway-core" % flywayDbVersion
   }
 
   object Refined {
@@ -64,13 +64,12 @@ object Dependencies {
   }
 
   object Doobie {
-    val doobieCore        = "org.tpolecat"            %% "doobie-core"        % doobieVersion
-    val doobieH2          = "org.tpolecat"            %% "doobie-h2"          % doobieVersion
-    val doobieHikari      = "org.tpolecat"            %% "doobie-hikari"      % doobieVersion
-    val doobiePostgres    = "org.tpolecat"            %% "doobie-postgres"    % doobieVersion
-    val doobieEnumeratum  = "com.beachape"            %% "enumeratum-doobie"  % enumeratumDoobieVersion
+    val doobieCore       = "org.tpolecat" %% "doobie-core"       % doobieVersion
+    val doobieH2         = "org.tpolecat" %% "doobie-h2"         % doobieVersion
+    val doobieHikari     = "org.tpolecat" %% "doobie-hikari"     % doobieVersion
+    val doobiePostgres   = "org.tpolecat" %% "doobie-postgres"   % doobieVersion
+    val doobieEnumeratum = "com.beachape" %% "enumeratum-doobie" % enumeratumDoobieVersion
   }
-
 
   // Runtime
   val logback = "ch.qos.logback" % "logback-classic" % logbackVersion % Runtime
@@ -89,7 +88,8 @@ object Dependencies {
 
   import CompilerPlugin._
 
-  val commonDependencies: Seq[ModuleID] = Seq(Zio.zio, Zio.zioPrelude, Zio.zioInteropCats, Zio.zioStreams, Zio.zioKafka, Zio.zioJson, Zio.zioQuery)
+  val commonDependencies: Seq[ModuleID] =
+    Seq(Zio.zio, Zio.zioPrelude, Zio.zioInteropCats, Zio.zioStreams, Zio.zioKafka, Zio.zioJson, Zio.zioQuery)
 
   val tradeioDependencies: Seq[ModuleID] =
     commonDependencies ++ Seq(kindProjector, betterMonadicFor, semanticDB) ++

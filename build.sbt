@@ -34,7 +34,6 @@ lazy val tests = (project in file("modules/tests"))
   )
   .dependsOn(core)
 
-
 lazy val commonSettings = Seq(
   scalafmtOnCompile := true,
   scalacOptions ++= List("-Ymacro-annotations", "-Yrangepos", "-Wconf:cat=unused:info"),
@@ -70,4 +69,3 @@ lazy val dependencies =
 
 lazy val testDependencies =
   libraryDependencies ++= Dependencies.testDependencies
-
