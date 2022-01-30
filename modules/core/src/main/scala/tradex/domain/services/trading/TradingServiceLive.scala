@@ -163,9 +163,12 @@ final case class TradingServiceLive(
 
 object TradingServiceLive {
 
-  val layer: ZLayer[Has[AccountRepository] with Has[OrderRepository] with Has[ExecutionRepository] with Has[
-    TradeRepository
-  ], Throwable, Has[TradingService]] = {
+  val layer: ZLayer[Has[AccountRepository]
+    with Has[OrderRepository]
+    with Has[ExecutionRepository]
+    with Has[
+      TradeRepository
+    ], Throwable, Has[TradingService]] = {
     (TradingServiceLive(_, _, _, _)).toLayer
   }
 }

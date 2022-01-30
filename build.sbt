@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion     := "2.13.7"
+ThisBuild / scalaVersion     := "2.13.8"
 ThisBuild / version          := "0.0.1"
 ThisBuild / organization     := "dev.tradex"
 ThisBuild / organizationName := "tradex"
@@ -33,7 +33,6 @@ lazy val tests = (project in file("modules/tests"))
     testDependencies
   )
   .dependsOn(core)
-
 
 lazy val commonSettings = Seq(
   scalafmtOnCompile := true,
@@ -70,4 +69,3 @@ lazy val dependencies =
 
 lazy val testDependencies =
   libraryDependencies ++= Dependencies.testDependencies
-
