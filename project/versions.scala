@@ -32,7 +32,7 @@ object Versions {
   val zioVersion              = "1.0.13"
   val zioPreludeVersion       = "1.0.0-RC8"
   val zioConfigVersion        = "1.0.10"
-  val zioInteropCatsVersion   = "3.1.1.0"
+  val zioInteropCatsVersion   = "3.3.0"
   val enumeratumDoobieVersion = "1.7.1"
   val flywayDbVersion         = "8.4.3"
   val zioStreamsVersion       = "1.0.13"
