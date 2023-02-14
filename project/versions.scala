@@ -36,7 +36,7 @@ object Versions {
   val enumeratumDoobieVersion = "1.7.1"
   val flywayDbVersion         = "8.4.3"
   val zioStreamsVersion       = "1.0.13"
-  val zioKafkaVersion         = "0.17.3"
+  val zioKafkaVersion         = "0.17.8"
   val zioJsonVersion          = "0.1.5"
   val zioQueryVersion         = "0.2.10"
 }
