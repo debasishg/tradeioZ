@@ -30,7 +30,7 @@ object Versions {
   val betterMonadicForVersion = "0.3.1"
   val semanticDBVersion       = "4.4.33"
   val zioVersion              = "1.0.13"
-  val zioPreludeVersion       = "1.0.0-RC8"
+  val zioPreludeVersion       = "1.0.0-RC27"
   val zioConfigVersion        = "1.0.10"
   val zioInteropCatsVersion   = "3.1.1.0"
   val enumeratumDoobieVersion = "1.7.1"
