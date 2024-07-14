@@ -38,5 +38,5 @@ object Versions {
   val zioStreamsVersion       = "1.0.13"
   val zioKafkaVersion         = "0.17.3"
   val zioJsonVersion          = "0.1.5"
-  val zioQueryVersion         = "0.2.10"
+  val zioQueryVersion         = "0.7.4"
 }
